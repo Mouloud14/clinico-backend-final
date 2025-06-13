@@ -16,7 +16,7 @@ const DossierPatient = () => {
     const fetchPatientDetails = async () => {
       try {
         const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/patient/${id}`, 
-          { withCredentials: true }
+          
         );
         setPatient(response.data);
       } catch (error) {
@@ -27,7 +27,7 @@ const DossierPatient = () => {
     const fetchPrescriptions = async () => {
       try {
         const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/prescriptions/patient/${id}`,
-          { withCredentials: true }
+          
         );
         setPrescriptions(response.data);
       } catch (error) {

@@ -33,7 +33,7 @@ const Bilan = () => {
     const fetchPatients = async () => {
       try {
         const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
-           { withCredentials: true }
+          
         );
         setPatients(response.data.patients);
       } catch (error) {

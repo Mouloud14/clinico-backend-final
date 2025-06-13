@@ -44,7 +44,7 @@ const AppointmentCalendar = () => {
   try {
     const response = await axios.get(
   `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`, // <<< CELA DOIT ÊTRE L'URL PROPRE
-  { withCredentials: true }
+  
 );
     setAppointments(response.data.patients);
   } catch (error) {
@@ -151,7 +151,7 @@ const AppointmentCalendar = () => {
                 patientId: patientIdToSchedule, // Utilisez l'ID du patient existant ou nouveau
                 appointmentDate: appointmentDate.toISOString(),
             },
-            { withCredentials: true }
+            
         );
 
         toast.success("Rendez-vous programmé !");
@@ -167,7 +167,7 @@ const AppointmentCalendar = () => {
       await axios.put(
         `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
         {},
-        { withCredentials: true }
+        
       );
       toast.success("Statut mis à jour");
       fetchAppointments(date); // Recharger les rendez-vous après la mise à jour
@@ -187,7 +187,7 @@ const AppointmentCalendar = () => {
           appointmentId,
           newAppointmentDate: newAppointmentDate.toISOString(),
         },
-        { withCredentials: true }
+        
       );
       toast.success("Heure du rendez-vous mise à jour");
       fetchAppointments(date); // Recharger les rendez-vous après la mise à jour

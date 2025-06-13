@@ -35,7 +35,7 @@ const AddNewPatient = () => {
         try {
           const response = await axios.get(
             `https://clinico-backend-final.onrender.com/api/v1/patient/${id}`,
-            { withCredentials: true }
+            
           );
           const patient = response.data;
           

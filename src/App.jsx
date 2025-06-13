@@ -19,7 +19,7 @@ import CertificatArret from "./components/CertificatArret";
 import Justification from "./components/Justification";
 import Blocnote from "./components/Blocnote";
 import "./App.css";
-
+axios.defaults.withCredentials = true;
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin } =
     useContext(Context);
@@ -29,7 +29,7 @@ const App = () => {
       try {
         const response = await axios.get(
           "https://clinico-backend-final.onrender.com/api/v1/user/admin/me",
-          { withCredentials: true }
+          
         );
         setIsAuthenticated(true);
         setAdmin(response.data.user);

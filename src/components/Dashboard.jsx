@@ -28,7 +28,7 @@ const Dashboard = () => {
         // Récupérer tous les patients
         const patientsResponse = await axios.get(
           "https://clinico-backend-final.onrender.com/api/v1/patient/patients",
-          { withCredentials: true }
+          
         );
         setTotalPatients(patientsResponse.data.patients.length);
 
@@ -40,7 +40,7 @@ endOfDay.setHours(23, 59, 59, 999); // Fin de la journée
 
 const appointmentsResponse = await axios.get(
   `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
-  { withCredentials: true }
+  
 );
 
 // ... puis l'aplatissement et le tri ...
@@ -76,7 +76,7 @@ setPatientsToday(sortedAppointments.length);
       await axios.put(
         `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
         { seen: newStatus === "Vu" },
-        { withCredentials: true }
+        
       );
       toast.success("Statut mis à jour");
       setUnconsultedPatientsToday(prev => newStatus === "Vu" ? prev - 1 : prev + 1);
