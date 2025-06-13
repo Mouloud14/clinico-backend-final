@@ -66,8 +66,10 @@ setPatientsToday(sortedAppointments.length);
         setUnconsultedPatientsToday(0);
       }
     };
-    fetchData();
-  }, []);
+   if (isAuthenticated) { // <<< NE CHARGE LES DONNÉES QUE SI L'UTILISATEUR EST AUTHENTIFIÉ
+        fetchData();
+    }
+  }, [isAuthenticated]);
 
   const handleUpdateStatus = async (patientId, newStatus) => {
     try {

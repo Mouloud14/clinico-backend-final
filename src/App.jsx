@@ -29,19 +29,21 @@ const App = () => {
       try {
         const response = await axios.get(
           "https://clinico-backend-final.onrender.com/api/v1/user/admin/me",
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
         setIsAuthenticated(true);
         setAdmin(response.data.user);
       } catch (error) {
         setIsAuthenticated(false);
         setAdmin({});
+        // Si l'utilisateur n'est pas authentifié et qu'il n'est pas sur la page de login, redirigez-le
+        // if (window.location.pathname !== "/login") {
+        //   window.location.href = "/login"; // Redirige de force
+        // }
       }
     };
     fetchUser();
-  }, [isAuthenticated]);
+  }, [isAuthenticated]); // Déclenché quand isAuthenticated change
 
   return (
     <Router>
