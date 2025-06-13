@@ -27,7 +27,7 @@ const Dashboard = () => {
       try {
         // Récupérer tous les patients
         const patientsResponse = await axios.get(
-          "http://localhost:4000/api/v1/patient/patients",
+          "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/patients",
           { withCredentials: true }
         );
         setTotalPatients(patientsResponse.data.patients.length);
@@ -39,7 +39,7 @@ const Dashboard = () => {
         endOfDay.setHours(23, 59, 59, 999);
 
         const appointmentsResponse = await axios.get(
-          `http://localhost:4000/api/v1/patient/by-date?date=${today.toISOString()}`,
+          ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/by-date?date=${today.toISOString()}`,
           { withCredentials: true }
         );
 
@@ -82,7 +82,7 @@ const Dashboard = () => {
   const handleUpdateStatus = async (patientId, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:4000/api/v1/patient/mark-seen/${patientId}`,
+        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/mark-seen/${patientId}`,
         { seen: newStatus === "Vu" },
         { withCredentials: true }
       );

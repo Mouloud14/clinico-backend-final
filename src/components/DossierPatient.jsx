@@ -17,7 +17,7 @@ const DossierPatient = () => {
   useEffect(() => {
     const fetchPatientDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/v1/patient/${id}`, {
+        const response = await axios.get(``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/${id}`, {
           withCredentials: true,
         });
         setPatient(response.data);
@@ -39,7 +39,7 @@ const DossierPatient = () => {
 
       try {
         const response = await axios.put(
-          `http://localhost:4000/api/v1/patient/${id}/add-medical-files`,
+          ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/${id}/add-medical-files`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },

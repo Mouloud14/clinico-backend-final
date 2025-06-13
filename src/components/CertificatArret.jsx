@@ -30,7 +30,7 @@ const CertificatArret = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/v1/patient/patients", 
+        const response = await axios.get("`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/patients", 
           { withCredentials: true }
         );
         setPatients(response.data.patients);
@@ -120,7 +120,7 @@ const CertificatArret = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/v1/patient/${selectedPatient}/add-certificat`,
+        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/${selectedPatient}/add-certificat`,
         certificatData,
         { withCredentials: true }
       );

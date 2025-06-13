@@ -43,7 +43,7 @@ const AppointmentCalendar = () => {
   const fetchAppointments = async (selectedDate) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
+        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
         { withCredentials: true }
       );
       setAppointments(response.data.patients); // Mettre à jour l'état des rendez-vous
@@ -55,7 +55,7 @@ const AppointmentCalendar = () => {
   // Fonction pour récupérer tous les patients
   const fetchAllPatients = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/v1/patient/patients",
+      const response = await axios.get("`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/patients",
         {withCredentials: true }
       );
       setPatients(response.data.patients); // Mettre à jour l'état des patients
@@ -82,9 +82,10 @@ const AppointmentCalendar = () => {
 
   // Fonction pour programmer un nouveau rendez-vous
   const scheduleAppointment = async () => {
-    let patientIdToSchedule = selectedPatient;
+    let patientIdToSchedule = selectedPatient; // Par défaut, c'est un patient existant
 
-    if (showNewPatientFields) { // Utilisez showNewPatientFields pour la condition
+    // Si l'option "Ajouter un nouveau patient" est sélectionnée (valeur spéciale, par ex. "new")
+    if (selectedPatient === "new") {
         // 1. Validation des champs du nouveau patient
         if (!newPatientFirstName || !newPatientLastName || !newPatientPhoneNumber) {
             toast.error("Veuillez remplir le nom, prénom et numéro de téléphone du nouveau patient.");
@@ -102,35 +103,37 @@ const AppointmentCalendar = () => {
             newPatientData.append("firstName", newPatientFirstName);
             newPatientData.append("lastName", newPatientLastName);
             newPatientData.append("phoneNumber", newPatientPhoneNumber);
+            // Vous pouvez ajouter d'autres champs obligatoires si nécessaire ici, ou les laisser vides pour le backend.
+            // Par exemple, si 'email' est requis côté backend pour certains flux, même si optionnel pour l'inscription.
+            // Assurez-vous que le backend gère bien les champs manquants ou optionnels.
 
             const response = await axios.post(
-                "http://localhost:4000/api/v1/patient/addnew",
+                "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/addnew",
                 newPatientData,
                 {
                     headers: { "Content-Type": "multipart/form-data" },
                     withCredentials: true,
                 }
             );
-            patientIdToSchedule = response.data.patient._id;
+            patientIdToSchedule = response.data.patient._id; // Récupérez l'ID du nouveau patient
             toast.success("Nouveau patient ajouté avec succès !");
 
-            // Réinitialiser les champs du nouveau patient et masquer le formulaire
+            // Réinitialiser les champs du nouveau patient
             setNewPatientFirstName("");
             setNewPatientLastName("");
             setNewPatientPhoneNumber("");
-            setSelectedPatient("");
-            setShowNewPatientFields(false); // Masquer les champs du nouveau patient après l'ajout
-            fetchAllPatients();
+            setSelectedPatient(""); // Réinitialiser le sélecteur
+            fetchAllPatients(); // Recharger la liste des patients pour inclure le nouveau
 
         } catch (error) {
             toast.error(error.response?.data?.message || "Erreur lors de l'ajout du nouveau patient.");
             console.error(error);
-            return;
+            return; // Arrêter la fonction si l'ajout du patient échoue
         }
     }
 
     // Si aucun patient n'est sélectionné après la logique ci-dessus
-    if (!patientIdToSchedule) { // Plus besoin de "patientIdToSchedule === 'new'"
+    if (!patientIdToSchedule || patientIdToSchedule === "new") { // S'assurer qu'un ID valide est là
         toast.error("Veuillez sélectionner ou ajouter un patient pour le rendez-vous.");
         return;
     }
@@ -143,16 +146,16 @@ const AppointmentCalendar = () => {
         appointmentDate.setMinutes(minutes);
 
         const response = await axios.put(
-            "http://localhost:4000/api/v1/patient/schedule-appointment",
+            "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/schedule-appointment",
             {
-                patientId: patientIdToSchedule,
+                patientId: patientIdToSchedule, // Utilisez l'ID du patient existant ou nouveau
                 appointmentDate: appointmentDate.toISOString(),
             },
             { withCredentials: true }
         );
 
         toast.success("Rendez-vous programmé !");
-        fetchAppointments(date);
+        fetchAppointments(date); // Recharger les rendez-vous après la programmation
     } catch (error) {
         toast.error(error.response?.data?.message || "Erreur lors de la programmation.");
     }
@@ -162,7 +165,7 @@ const AppointmentCalendar = () => {
   const handleMarkAsSeen = async (patientId) => {
     try {
       await axios.put(
-        `http://localhost:4000/api/v1/patient/mark-seen/${patientId}`,
+        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/mark-seen/${patientId}`,
         {},
         { withCredentials: true }
       );
@@ -178,7 +181,7 @@ const AppointmentCalendar = () => {
     try {
       const newAppointmentDate = new Date(newTime);
       await axios.put(
-        "http://localhost:4000/api/v1/patient/update-appointment-time",
+        "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/update-appointment-time",
         {
           patientId,
           appointmentId,
