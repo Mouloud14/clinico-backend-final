@@ -20,7 +20,7 @@ const ChangePassword = () => {
 
     try {
       const res = await axios.put(
-        'https://clinico-backend-final.onrender.com}/api/v1/user/change-password',
+        'https://clinico-backend-final.onrender.com/api/v1/user/change-password',
         { oldPassword, newPassword },
         { withCredentials: true }
       );

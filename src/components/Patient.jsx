@@ -12,7 +12,7 @@ const Patient = () => {
     const fetchPatients = async () => {
       try {
         const response = await axios.get(
-          "https://clinico-backend-final.onrender.com}/api/v1/patient/patients", 
+          "https://clinico-backend-final.onrender.com/api/v1/patient/patients", 
           { 
             withCredentials: true // Ajoutez cette ligne
           }

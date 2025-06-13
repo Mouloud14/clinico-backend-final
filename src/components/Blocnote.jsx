@@ -67,7 +67,7 @@ const Blocnote = () => {
 
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("https://clinico-backend-final.onrender.com}/api/v1/patient/patients",
+        const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
           {withCredentials: true}
         );
         setPatients(response.data.patients);
@@ -115,7 +115,7 @@ const Blocnote = () => {
 
     try {
       const response = await axios.put(
-        `https://clinico-backend-final.onrender.com}/api/v1/patient/${selectedPatient}/add-note`,
+        `https://clinico-backend-final.onrender.com/api/v1/patient/${selectedPatient}/add-note`,
         noteData,
         {
           withCredentials: true

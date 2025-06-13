@@ -28,7 +28,7 @@ const App = () => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(
-          "https://clinico-backend-final.onrender.com}/api/v1/user/admin/me",
+          "https://clinico-backend-final.onrender.com/api/v1/user/admin/me",
           {
             withCredentials: true,
           }

@@ -17,7 +17,7 @@ const DossierPatient = () => {
   useEffect(() => {
     const fetchPatientDetails = async () => {
       try {
-        const response = await axios.get(`https://clinico-backend-final.onrender.com}/api/v1/patient/${id}`, {
+        const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/patient/${id}`, {
           withCredentials: true,
         });
         setPatient(response.data);
@@ -39,7 +39,7 @@ const DossierPatient = () => {
 
       try {
         const response = await axios.put(
-          `https://clinico-backend-final.onrender.com}/api/v1/patient/${id}/add-medical-files`,
+          `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/add-medical-files`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },

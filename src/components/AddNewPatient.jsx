@@ -34,7 +34,7 @@ const AddNewPatient = () => {
       const fetchPatientData = async () => {
         try {
           const response = await axios.get(
-            `https://clinico-backend-final.onrender.com}/api/v1/patient/${id}`,
+            `https://clinico-backend-final.onrender.com/api/v1/patient/${id}`,
             { withCredentials: true }
           );
           const patient = response.data;
@@ -115,7 +115,7 @@ const AddNewPatient = () => {
       if (isEditing) {
         // Mode modification
         response = await axios.put(
-          `https://clinico-backend-final.onrender.com}/api/v1/patient/${id}/update-info`, 
+          `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/update-info`, 
           data, 
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -127,7 +127,7 @@ const AddNewPatient = () => {
       } else {
         // Mode création
         response = await axios.post(
-          "https://clinico-backend-final.onrender.com}/api/v1/patient/addnew", 
+          "https://clinico-backend-final.onrender.com/api/v1/patient/addnew", 
           data, 
           {
             headers: { "Content-Type": "multipart/form-data" },
