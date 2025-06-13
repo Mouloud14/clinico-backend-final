@@ -17,10 +17,10 @@ console.log("CORS Origin configured as:", process.env.DASHBOARD_URL);
 
 app.use(
   cors({
-    origin: "*",
+    origin: "https://clinico-dashboard.vercel.app",
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: false,
+    credentials: true,
   })
 );
 
