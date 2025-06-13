@@ -114,18 +114,23 @@ export const getAllPatients = async (req, res) => {
 
 export const getPatientsByDate = async (req, res) => {
   try {
-    const { date } = req.query;
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
+    const { date } = req.query; // date est une string ISO (ex: "2025-06-13T10:00:00.000Z")
+
+    // Convertir la date en objet Date, puis la "tronquer" au début du jour UTC
+    const receivedDate = new Date(date);
+    receivedDate.setUTCHours(0, 0, 0, 0); // Début du jour en UTC
+
+    const startDate = receivedDate; // Maintenant, startDate est le début du jour UTC de la date reçue
+
+    const endDate = new Date(startDate);
+    endDate.setUTCDate(startDate.getUTCDate() + 1); // C'est le début du jour UTC suivant
+    // Cela crée une plage qui couvre exactement 24 heures UTC du jour donné
 
     const patients = await Patient.find({
       doctor: req.user._id,
       'appointments.date': {
-        $gte: startDate,
-        $lt: endDate
+        $gte: startDate, // Rendez-vous à partir du début du jour UTC
+        $lt: endDate    // Jusqu'à (mais non inclus) le début du jour UTC suivant
       }
     });
 
