@@ -34,40 +34,30 @@ const Dashboard = () => {
 
         // Récupérer les rendez-vous du jour
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(today);
-        endOfDay.setHours(23, 59, 59, 999);
+today.setHours(0, 0, 0, 0); // Début de la journée
+const endOfDay = new Date(today);
+endOfDay.setHours(23, 59, 59, 999); // Fin de la journée
 
-        const appointmentsResponse = await axios.get(
-          `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
-          { withCredentials: true }
-        );
+const appointmentsResponse = await axios.get(
+  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
+  { withCredentials: true }
+);
 
-        // Calcul des patients non consultés
-        const patientsWithAppointmentsToday = appointmentsResponse.data.patients;
-        const unconsultedCount = patientsWithAppointmentsToday.filter(
-          patient => !patient.seen
-        ).length;
-        setUnconsultedPatientsToday(unconsultedCount);
-
-        // Aplatir les rendez-vous
-        const allAppointments = patientsWithAppointmentsToday.flatMap(patient => 
-          patient.appointments
-            .filter(appt => new Date(appt.date) >= today && new Date(appt.date) <= endOfDay)
-            .map(appt => ({
-              ...appt,
-              patientId: patient._id,
-              firstName: patient.firstName,
-              lastName: patient.lastName,
-              phoneNumber: patient.phoneNumber,
-              seen: patient.seen
-            }))
-        );
-
-        // Trier les rendez-vous
-        const sortedAppointments = allAppointments.sort((a, b) => new Date(a.date) - new Date(b.date));
-        setAppointments(sortedAppointments);
-        setPatientsToday(sortedAppointments.length);
+// ... puis l'aplatissement et le tri ...
+const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
+  patient.appointments
+    .filter(appt => new Date(appt.date) >= today && new Date(appt.date) <= endOfDay) // <<< CE FILTRE EST CRUCIAL
+    .map(appt => ({
+      ...appt,
+      patientId: patient._id,
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      phoneNumber: patient.phoneNumber,
+      seen: patient.seen
+    }))
+);
+setAppointments(sortedAppointments);
+setPatientsToday(sortedAppointments.length);
 
       } catch (error) {
         toast.error("Erreur de chargement des données");
