@@ -116,29 +116,39 @@ export const getPatientsByDate = async (req, res) => {
   try {
     const { date } = req.query; // date est une string ISO (ex: "2025-06-13T10:00:00.000Z")
 
-    // Convertir la date en objet Date, puis la "tronquer" au début du jour UTC
-    const receivedDate = new Date(date);
-    receivedDate.setUTCHours(0, 0, 0, 0); // Début du jour en UTC
+    // Créer un objet Date à partir de la chaîne reçue
+    const queryDate = new Date(date);
 
-    const startDate = receivedDate; // Maintenant, startDate est le début du jour UTC de la date reçue
+    // Définir le début du jour en UTC
+    const startOfDay = new Date(Date.UTC(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate(),
+        0, 0, 0, 0
+    ));
 
-    const endDate = new Date(startDate);
-    endDate.setUTCDate(startDate.getUTCDate() + 1); // C'est le début du jour UTC suivant
-    // Cela crée une plage qui couvre exactement 24 heures UTC du jour donné
+    // Définir la fin du jour en UTC (le début du jour suivant)
+    const endOfDay = new Date(Date.UTC(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate() + 1, // Le jour suivant
+        0, 0, 0, 0
+    ));
 
     const patients = await Patient.find({
       doctor: req.user._id,
       'appointments.date': {
-        $gte: startDate, // Rendez-vous à partir du début du jour UTC
-        $lt: endDate    // Jusqu'à (mais non inclus) le début du jour UTC suivant
+        $gte: startOfDay, // Rendez-vous à partir du début du jour UTC
+        $lt: endOfDay     // Jusqu'à (mais non inclus) le début du jour UTC suivant
       }
     });
 
     res.status(200).json({ patients });
   } catch (error) {
+    console.error("Erreur dans getPatientsByDate:", error); // Log l'erreur pour débogage sur Render
     res.status(500).json({ message: error.message });
   }
-};
+};;
 
 export const getPatientById = async (req, res) => {
   try {
