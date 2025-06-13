@@ -114,13 +114,16 @@ export const getAllPatients = async (req, res) => {
 
 export const getPatientsByDate = async (req, res) => {
   try {
-    const { date } = req.query; // date est une string ISO (ex: "2025-06-12T23:00:00.000Z")
+    const { date } = req.query; // Date reçue du frontend (ISO string)
 
-    console.log("--- Début getPatientsByDate ---"); // <<< NOUVEAU LOG
-    console.log("Date reçue du frontend:", date);    // <<< NOUVEAU LOG
+    // Log de la date reçue
+    console.log("BACKEND: Date reçue du frontend (query param):", date);
 
-    const queryDate = new Date(date);
+    const queryDate = new Date(date); // Convertir en objet Date
+    // Log de l'objet Date après conversion
+    console.log("BACKEND: queryDate objet Date:", queryDate);
 
+    // Définir le début du jour en UTC (Minuit UTC du jour de la requête)
     const startOfDay = new Date(Date.UTC(
         queryDate.getFullYear(),
         queryDate.getMonth(),
@@ -128,30 +131,42 @@ export const getPatientsByDate = async (req, res) => {
         0, 0, 0, 0
     ));
 
+    // Définir la fin du jour en UTC (Minuit UTC du jour suivant)
     const endOfDay = new Date(Date.UTC(
         queryDate.getFullYear(),
         queryDate.getMonth(),
-        queryDate.getDate() + 1,
+        queryDate.getDate() + 1, // Le jour suivant
         0, 0, 0, 0
     ));
 
-    console.log("Période de recherche UTC (début):", startOfDay.toISOString()); // <<< NOUVEAU LOG
-    console.log("Période de recherche UTC (fin):", endOfDay.toISOString());     // <<< NOUVEAU LOG
+    // Logs des bornes de recherche UTC
+    console.log("BACKEND: Période de recherche DB (startOfDay UTC):", startOfDay.toISOString());
+    console.log("BACKEND: Période de recherche DB (endOfDay UTC):", endOfDay.toISOString());
+
+    const doctorId = req.user._id; // Récupérer l'ID du médecin connecté
 
     const patients = await Patient.find({
-      doctor: req.user._id, // Assurez-vous que req.user._id est défini (si 401, ce n'est pas le cas)
+      doctor: doctorId, // Assurez-vous que le médecin est le bon
       'appointments.date': {
-        $gte: startOfDay,
-        $lt: endOfDay
+        $gte: startOfDay, // Rendez-vous à partir du début du jour UTC
+        $lt: endOfDay     // Jusqu'à (mais non inclus) le début du jour UTC suivant
       }
     });
 
-    console.log("Patients trouvés par getPatientsByDate:", patients.length); // <<< NOUVEAU LOG
-    console.log("--- Fin getPatientsByDate ---");     // <<< NOUVEAU LOG
+    // Logs des résultats de la recherche
+    console.log("BACKEND: Patients trouvés pour le médecin (ID):", doctorId);
+    console.log("BACKEND: Nombre de patients trouvés par getPatientsByDate:", patients.length);
+    if (patients.length > 0) {
+        patients.forEach(p => {
+            console.log(`BACKEND: Patient "${p.firstName} ${p.lastName}" trouvé avec RDV:`, p.appointments.map(a => a.date.toISOString()));
+        });
+    }
 
     res.status(200).json({ patients });
   } catch (error) {
-    console.error("Erreur dans getPatientsByDate:", error);
+    // Log détaillé en cas d'erreur de la fonction
+    console.error("BACKEND ERREUR dans getPatientsByDate:", error.message);
+    console.error("BACKEND DÉTAILS DE L'ERREUR:", error);
     res.status(500).json({ message: error.message });
   }
 };
