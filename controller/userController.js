@@ -68,7 +68,7 @@ export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({ success: true, user: req.user });
 });
 
- export const logoutAdmin catchAsyncErrors(async (req, res, next) => {
+ export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
   res.status(200)
   
     .clearCookie("adminToken", cookieOptions)
