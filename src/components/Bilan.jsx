@@ -32,7 +32,7 @@ const Bilan = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/patients",
+        const response = await axios.get("${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients",
            { withCredentials: true }
         );
         setPatients(response.data.patients);
@@ -75,7 +75,7 @@ const Bilan = () => {
 
     try {
       const response = await axios.put(
-        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/${selectedPatient}/add-bilan`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${selectedPatient}/add-bilan`,
         bilanData,
         {
           withCredentials: true // Ajouté ici

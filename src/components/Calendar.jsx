@@ -42,11 +42,10 @@ const AppointmentCalendar = () => {
   // Fonction pour récupérer les rendez-vous d'une date spécifique
   const fetchAppointments = async (selectedDate) => {
     try {
-      const response = await axios.get(
-        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
-        { withCredentials: true }
-      );
-      setAppointments(response.data.patients); // Mettre à jour l'état des rendez-vous
+     const response = await axios.get(
+  `<span class="math-inline">\{import\.meta\.env\.VITE\_REACT\_APP\_API\_URL\}/api/v1/patient/by\-date?date\=</span>{selectedDate.toISOString()}`, 
+    );
+      setAppointments(response.data.patients); 
     } catch (error) {
       toast.error("Erreur lors du chargement des rendez-vous");
     }
@@ -55,7 +54,7 @@ const AppointmentCalendar = () => {
   // Fonction pour récupérer tous les patients
   const fetchAllPatients = async () => {
     try {
-      const response = await axios.get("`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/patients",
+      const response = await axios.get("${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients",
         {withCredentials: true }
       );
       setPatients(response.data.patients); // Mettre à jour l'état des patients
@@ -108,7 +107,7 @@ const AppointmentCalendar = () => {
             // Assurez-vous que le backend gère bien les champs manquants ou optionnels.
 
             const response = await axios.post(
-                "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/addnew",
+                "${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/addnew",
                 newPatientData,
                 {
                     headers: { "Content-Type": "multipart/form-data" },
@@ -146,7 +145,7 @@ const AppointmentCalendar = () => {
         appointmentDate.setMinutes(minutes);
 
         const response = await axios.put(
-            "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/schedule-appointment",
+            "${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/schedule-appointment",
             {
                 patientId: patientIdToSchedule, // Utilisez l'ID du patient existant ou nouveau
                 appointmentDate: appointmentDate.toISOString(),
@@ -165,7 +164,7 @@ const AppointmentCalendar = () => {
   const handleMarkAsSeen = async (patientId) => {
     try {
       await axios.put(
-        ``${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/mark-seen/${patientId}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/mark-seen/${patientId}`,
         {},
         { withCredentials: true }
       );
@@ -181,7 +180,7 @@ const AppointmentCalendar = () => {
     try {
       const newAppointmentDate = new Date(newTime);
       await axios.put(
-        "`${import.meta.env.VITE_REACT_APP_API_URL}`/api/v1/patient/update-appointment-time",
+        "${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/update-appointment-time",
         {
           patientId,
           appointmentId,
