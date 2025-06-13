@@ -40,16 +40,17 @@ const AppointmentCalendar = () => {
   }, [appointments]);
 
   // Fonction pour récupérer les rendez-vous d'une date spécifique
-  const fetchAppointments = async (selectedDate) => {
-    try {
-     const response = await axios.get(
-  `<span class="math-inline">\{import\.meta\.env\.VITE\_REACT\_APP\_API\_URL\}/api/v1/patient/by\-date?date\=</span>{selectedDate.toISOString()}`, 
-    );
-      setAppointments(response.data.patients); 
-    } catch (error) {
-      toast.error("Erreur lors du chargement des rendez-vous");
-    }
-  };
+ const fetchAppointments = async (selectedDate) => {
+  try {
+    const response = await axios.get(
+  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`, // <<< CELA DOIT ÊTRE L'URL PROPRE
+  { withCredentials: true }
+);
+    setAppointments(response.data.patients);
+  } catch (error) {
+    toast.error("Erreur lors du chargement des rendez-vous");
+  }
+};
 
   // Fonction pour récupérer tous les patients
   const fetchAllPatients = async () => {
