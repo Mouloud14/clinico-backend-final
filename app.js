@@ -12,12 +12,12 @@ import patientRouter from "./router/Patient.route.js";
 
 
 const app = express(); 
-
+console.log("CORS Origin configured as:", process.env.DASHBOARD_URL);
 
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, process.env.DASHBOARD_URL].filter(Boolean),
+    origin: [process.env.DASHBOARD_URL].filter(Boolean), // <<< Ne regarde que DASHBOARD_URL
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
