@@ -2,7 +2,7 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import { User } from "../models/userSchema.js";
 import ErrorHandler from "../middlewares/error.js";
 import { generateToken } from "../utils/jwtToken.js";
-import { cookieOptions } from "../utils/jwtToken.js"
+
 
 export const login = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
@@ -69,9 +69,11 @@ export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
 });
 
  export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
-  res.status(200)
-  
-    .clearCookie("adminToken", cookieOptions)
+   res.status(200)
+    .clearCookie("adminToken", { // <<< Cette ligne doit avoir les options ici
+       secure: true,
+       sameSite: 'none',
+    })
     .json({ success: true, message: "Déconnexion réussie" });
 });
 
