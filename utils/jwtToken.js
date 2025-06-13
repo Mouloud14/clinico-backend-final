@@ -32,14 +32,12 @@ export const cookieOptions = { // <<< AJOUTEZ CET OBJET D'OPTIONS
   sameSite: 'none',
 };
 
-
   res
     .status(statusCode)
-    .cookie(cookieName, token, cookieOptions) // <<< UTILISEZ cookieOptions ICI
+    .cookie(cookieName, token, cookieOptions) // Utilisez l'objet cookieOptions ici
     .json({
       success: true,
       message,
       user,
       token,
     });
-};
