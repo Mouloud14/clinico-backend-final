@@ -6,7 +6,7 @@ import { isAdminAuthenticated } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.post("/login", login);
-router.post("/admin/addnew", addNewAdmin);
+router.post("/admin/addnew", isAdminAuthenticated, addNewAdmin); // <<< Remettez ceci
 router.get("/admin/me", isAdminAuthenticated, getUserDetails);
 router.get("/admin/logout", isAdminAuthenticated, logoutAdmin);
 router.put("/change-password", isAdminAuthenticated, changePassword);
