@@ -17,10 +17,10 @@ console.log("CORS Origin configured as:", process.env.DASHBOARD_URL);
 
 app.use(
   cors({
-    origin: [process.env.DASHBOARD_URL].filter(Boolean),
+    origin: "*",
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
+    credentials: false,
   })
 );
 
@@ -35,7 +35,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/patient", patientRouter);
-
 
 dbConnection();
 
