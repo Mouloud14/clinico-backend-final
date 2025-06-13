@@ -114,12 +114,13 @@ export const getAllPatients = async (req, res) => {
 
 export const getPatientsByDate = async (req, res) => {
   try {
-    const { date } = req.query; // date est une string ISO (ex: "2025-06-13T10:00:00.000Z")
+    const { date } = req.query; // date est une string ISO (ex: "2025-06-12T23:00:00.000Z")
 
-    // Créer un objet Date à partir de la chaîne reçue
+    console.log("--- Début getPatientsByDate ---"); // <<< NOUVEAU LOG
+    console.log("Date reçue du frontend:", date);    // <<< NOUVEAU LOG
+
     const queryDate = new Date(date);
 
-    // Définir le début du jour en UTC
     const startOfDay = new Date(Date.UTC(
         queryDate.getFullYear(),
         queryDate.getMonth(),
@@ -127,28 +128,33 @@ export const getPatientsByDate = async (req, res) => {
         0, 0, 0, 0
     ));
 
-    // Définir la fin du jour en UTC (le début du jour suivant)
     const endOfDay = new Date(Date.UTC(
         queryDate.getFullYear(),
         queryDate.getMonth(),
-        queryDate.getDate() + 1, // Le jour suivant
+        queryDate.getDate() + 1,
         0, 0, 0, 0
     ));
 
+    console.log("Période de recherche UTC (début):", startOfDay.toISOString()); // <<< NOUVEAU LOG
+    console.log("Période de recherche UTC (fin):", endOfDay.toISOString());     // <<< NOUVEAU LOG
+
     const patients = await Patient.find({
-      doctor: req.user._id,
+      doctor: req.user._id, // Assurez-vous que req.user._id est défini (si 401, ce n'est pas le cas)
       'appointments.date': {
-        $gte: startOfDay, // Rendez-vous à partir du début du jour UTC
-        $lt: endOfDay     // Jusqu'à (mais non inclus) le début du jour UTC suivant
+        $gte: startOfDay,
+        $lt: endOfDay
       }
     });
 
+    console.log("Patients trouvés par getPatientsByDate:", patients.length); // <<< NOUVEAU LOG
+    console.log("--- Fin getPatientsByDate ---");     // <<< NOUVEAU LOG
+
     res.status(200).json({ patients });
   } catch (error) {
-    console.error("Erreur dans getPatientsByDate:", error); // Log l'erreur pour débogage sur Render
+    console.error("Erreur dans getPatientsByDate:", error);
     res.status(500).json({ message: error.message });
   }
-};;
+};
 
 export const getPatientById = async (req, res) => {
   try {
