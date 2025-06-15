@@ -28,7 +28,7 @@ const Dashboard = () => {
         // Récupérer tous les patients
         const patientsResponse = await axios.get(
           "https://clinico-backend-final.onrender.com/api/v1/patient/patients",
-          
+          { withCredentials: true }
         );
         setTotalPatients(patientsResponse.data.patients.length);
 
@@ -40,20 +40,30 @@ endOfDay.setHours(23, 59, 59, 999); // Fin de la journée
 
 const appointmentsResponse = await axios.get(
   `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${format(today, "yyyy-MM-dd")}`,
-  
+  { withCredentials: true }
 );
 
 // ... puis l'aplatissement et le tri ...
 const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
   patient.appointments
-    .filter(appt => new Date(appt.date) >= today && new Date(appt.date) <= endOfDay) // <<< CE FILTRE EST CRUCIAL
+    .filter(appt => {
+        const apptDate = new Date(appt.date); // Date du RDV de la DB (UTC)
+        const today = new Date(); // Date locale actuelle
+
+        // Comparez UNIQUEMENT l'année, le mois et le jour en UTC
+        return (
+            apptDate.getUTCFullYear() === today.getUTCFullYear() &&
+            apptDate.getUTCMonth() === today.getUTCMonth() &&
+            apptDate.getUTCDate() === today.getUTCDate()
+        );
+    })
     .map(appt => ({
-      ...appt,
-      patientId: patient._id,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      phoneNumber: patient.phoneNumber,
-      seen: patient.seen
+        ...appt,
+        patientId: patient._id,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        phoneNumber: patient.phoneNumber,
+        seen: patient.seen
     }))
 );
 setAppointments(sortedAppointments);

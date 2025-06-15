@@ -35,7 +35,7 @@ const AddNewPatient = () => {
         try {
           const response = await axios.get(
             `https://clinico-backend-final.onrender.com/api/v1/patient/${id}`,
-            
+            { withCredentials: true }
           );
           const patient = response.data;
           
@@ -114,14 +114,14 @@ const AddNewPatient = () => {
       let response;
       if (isEditing) {
         // Mode modification
-        response = await axios.put(
-          `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/update-info`, 
-          data, 
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          }
-        );
+       response = await axios.put(
+  `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/update-info`, 
+  data, 
+  {
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true, // <<< CHANGEZ credentials: true en withCredentials: true
+  }
+);
         toast.success("Informations du patient mises à jour avec succès");
         navigate(`/dossier-patient/${id}`); // Retourner au dossier du patient
       } else {

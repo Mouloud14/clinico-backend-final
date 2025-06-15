@@ -20,6 +20,7 @@ import Justification from "./components/Justification";
 import Blocnote from "./components/Blocnote";
 import "./App.css";
 axios.defaults.withCredentials = true;
+
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin } =
     useContext(Context);

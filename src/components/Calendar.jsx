@@ -42,9 +42,8 @@ const AppointmentCalendar = () => {
   // Fonction pour récupérer les rendez-vous d'une date spécifique
  const fetchAppointments = async (selectedDate) => {
   try {
-    const response = await axios.get(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`, // <<< CELA DOIT ÊTRE L'URL PROPRE
-  
+  const response = await axios.get(
+  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
 );
     setAppointments(response.data.patients);
   } catch (error) {
@@ -107,14 +106,15 @@ const AppointmentCalendar = () => {
             // Par exemple, si 'email' est requis côté backend pour certains flux, même si optionnel pour l'inscription.
             // Assurez-vous que le backend gère bien les champs manquants ou optionnels.
 
-            const response = await axios.post(
-                "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
-                newPatientData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                    withCredentials: true,
-                }
-            );
+           const response = await axios.post(
+  "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
+  newPatientData,
+  {
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true, // <<< AJOUTEZ CECI
+  }
+);
+
             patientIdToSchedule = response.data.patient._id; // Récupérez l'ID du nouveau patient
             toast.success("Nouveau patient ajouté avec succès !");
 
@@ -145,14 +145,14 @@ const AppointmentCalendar = () => {
         appointmentDate.setHours(hours);
         appointmentDate.setMinutes(minutes);
 
-        const response = await axios.put(
-            "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
-            {
-                patientId: patientIdToSchedule, // Utilisez l'ID du patient existant ou nouveau
-                appointmentDate: appointmentDate.toISOString(),
-            },
-            
-        );
+       const response = await axios.put(
+  "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
+  { // <<< C'EST CET OBJET QUI CONTIENT LES DONNÉES DE LA REQUÊTE
+    patientId: patientIdToSchedule,
+    appointmentDate: appointmentDate.toISOString(),
+  },
+  { withCredentials: true } // <<< L'objet de configuration est le 3ème argument
+);
 
         toast.success("Rendez-vous programmé !");
         fetchAppointments(date); // Recharger les rendez-vous après la programmation
@@ -165,10 +165,10 @@ const AppointmentCalendar = () => {
   const handleMarkAsSeen = async (patientId) => {
     try {
       await axios.put(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
-        {},
-        
-      );
+  `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
+  {}, // <<< Le corps de la requête (vide ici)
+  { withCredentials: true } // <<< L'objet de configuration est le 3ème argument
+);
       toast.success("Statut mis à jour");
       fetchAppointments(date); // Recharger les rendez-vous après la mise à jour
     } catch (error) {
@@ -181,14 +181,14 @@ const AppointmentCalendar = () => {
     try {
       const newAppointmentDate = new Date(newTime);
       await axios.put(
-        "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
-        {
-          patientId,
-          appointmentId,
-          newAppointmentDate: newAppointmentDate.toISOString(),
-        },
-        
-      );
+  "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
+  { // <<< C'EST CET OBJET QUI CONTIENT LES DONNÉES DE LA REQUÊTE
+    patientId,
+    appointmentId,
+    newAppointmentDate: newAppointmentDate.toISOString(),
+  },
+  { withCredentials: true } // <<< L'objet de configuration est le 3ème argument
+);
       toast.success("Heure du rendez-vous mise à jour");
       fetchAppointments(date); // Recharger les rendez-vous après la mise à jour
     } catch (error) {
