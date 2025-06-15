@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef  } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Calendar from "react-calendar";
 import { format } from "date-fns";
 import axios from "axios";
@@ -40,16 +40,17 @@ const AppointmentCalendar = () => {
   }, [appointments]);
 
   // Fonction pour récupérer les rendez-vous d'une date spécifique
- const fetchAppointments = async (selectedDate) => {
-  try {
-  const response = await axios.get(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
-);
-    setAppointments(response.data.patients);
-  } catch (error) {
-    toast.error("Erreur lors du chargement des rendez-vous");
-  }
-};
+  const fetchAppointments = async (selectedDate) => {
+    try {
+      const response = await axios.get(
+        `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
+        { withCredentials: true }
+      );
+      setAppointments(response.data.patients);
+    } catch (error) {
+      toast.error("Erreur lors du chargement des rendez-vous");
+    }
+  };
 
   // Fonction pour récupérer tous les patients
   const fetchAllPatients = async () => {
@@ -69,7 +70,7 @@ const AppointmentCalendar = () => {
     newDate.setHours(hours);
     newDate.setMinutes(minutes);
     setDate(newDate); // Mettre à jour la date sélectionnée
-    
+
     setTimeout(() => {
       if (appointmentsRef.current) {
         appointmentsRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -77,7 +78,7 @@ const AppointmentCalendar = () => {
     }, 300);
   };
 
-  
+
 
   // Fonction pour programmer un nouveau rendez-vous
   const scheduleAppointment = async () => {
@@ -106,15 +107,14 @@ const AppointmentCalendar = () => {
             // Par exemple, si 'email' est requis côté backend pour certains flux, même si optionnel pour l'inscription.
             // Assurez-vous que le backend gère bien les champs manquants ou optionnels.
 
-           const response = await axios.post(
-  "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
-  newPatientData,
-  {
-    headers: { "Content-Type": "multipart/form-data" },
-    withCredentials: true, // <<< AJOUTEZ CECI
-  }
-);
-
+            const response = await axios.post(
+                "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
+                newPatientData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                    withCredentials: true,
+                }
+            );
             patientIdToSchedule = response.data.patient._id; // Récupérez l'ID du nouveau patient
             toast.success("Nouveau patient ajouté avec succès !");
 
@@ -145,30 +145,30 @@ const AppointmentCalendar = () => {
         appointmentDate.setHours(hours);
         appointmentDate.setMinutes(minutes);
 
-       const response = await axios.put(
-  "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
-  { // <<< C'EST CET OBJET QUI CONTIENT LES DONNÉES DE LA REQUÊTE
-    patientId: patientIdToSchedule,
-    appointmentDate: appointmentDate.toISOString(),
-  },
-  { withCredentials: true } // <<< L'objet de configuration est le 3ème argument
-);
+        const response = await axios.put(
+            "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
+            { // Données de la requête
+                patientId: patientIdToSchedule, // Utilisez l'ID du patient existant ou nouveau
+                appointmentDate: appointmentDate.toISOString(),
+            },
+            { withCredentials: true } // Configuration de la requête
+        );
 
         toast.success("Rendez-vous programmé !");
         fetchAppointments(date); // Recharger les rendez-vous après la programmation
     } catch (error) {
         toast.error(error.response?.data?.message || "Erreur lors de la programmation.");
     }
-};
-  
+  };
+
   // Fonction pour marquer un patient comme "Vu"
   const handleMarkAsSeen = async (patientId) => {
     try {
       await axios.put(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
-  {}, // <<< Le corps de la requête (vide ici)
-  { withCredentials: true } // <<< L'objet de configuration est le 3ème argument
-);
+        `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
+        {}, // Corps de la requête
+        { withCredentials: true } // Configuration de la requête
+      );
       toast.success("Statut mis à jour");
       fetchAppointments(date); // Recharger les rendez-vous après la mise à jour
     } catch (error) {
@@ -181,14 +181,14 @@ const AppointmentCalendar = () => {
     try {
       const newAppointmentDate = new Date(newTime);
       await axios.put(
-  "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
-  { // <<< C'EST CET OBJET QUI CONTIENT LES DONNÉES DE LA REQUÊTE
-    patientId,
-    appointmentId,
-    newAppointmentDate: newAppointmentDate.toISOString(),
-  },
-  { withCredentials: true } // <<< L'objet de configuration est le 3ème argument
-);
+        "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
+        { // Corps de la requête
+            patientId,
+            appointmentId,
+            newAppointmentDate: newAppointmentDate.toISOString(),
+        },
+        { withCredentials: true } // Configuration de la requête
+      );
       toast.success("Heure du rendez-vous mise à jour");
       fetchAppointments(date); // Recharger les rendez-vous après la mise à jour
     } catch (error) {
@@ -201,192 +201,186 @@ const AppointmentCalendar = () => {
     navigate(`/dossier-patient/${patientId}`);
   };
 
-  // Dans votre fichier Calendar.jsx, remplacez la partie return par :
+  return (
+    <div className="calendar-container">
+      <h2>Calendrier des Rendez-vous</h2>
 
-return (
-  <div className="calendar-container">
-    <h2>Calendrier des Rendez-vous</h2>
+      {/* Container pour calendrier + formulaire côte à côte */}
+      <div className="calendar-form-container">
+        {/* Formulaire pour programmer un nouveau rendez-vous */}
+        <div className="appointment-form">
+          <h3>Programmer un nouveau rendez-vous</h3>
 
-    {/* Container pour calendrier + formulaire côte à côte */}
-    <div className="calendar-form-container">
-      {/* Calendrier pour sélectionner une date */}
-    
+          <div className="time-selection">
+            <label>Heure : </label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              required
+            />
+          </div>
 
-      {/* Formulaire pour programmer un nouveau rendez-vous */}
-      {/* Formulaire pour programmer un nouveau rendez-vous */}
-<div className="appointment-form">
-  <h3>Programmer un nouveau rendez-vous</h3>
+          {/* Sélection du patient existant */}
+          <select
+            onChange={(e) => {
+              setSelectedPatient(e.target.value);
+              // Quand on choisit un patient existant, on masque les champs du nouveau patient
+              setShowNewPatientFields(false);
+              // Réinitialiser les champs du nouveau patient quand un existant est choisi
+              setNewPatientFirstName("");
+              setNewPatientLastName("");
+              setNewPatientPhoneNumber("");
+            }}
+            value={selectedPatient}
+          >
+            <option value="">Sélectionner un patient</option>
+            {patients.map((patient) => (
+              <option key={patient._id} value={patient._id}>
+                {patient.firstName} {patient.lastName} (N°{patient.patientNumber})
+              </option>
+            ))}
+          </select>
 
-  <div className="time-selection">
-    <label>Heure : </label>
-    <input
-      type="time"
-      value={time}
-      onChange={(e) => setTime(e.target.value)}
-      required
-    />
-  </div>
+          {/* Bouton pour afficher les champs d'ajout de nouveau patient */}
+          {!showNewPatientFields && (
+            <button
+              type="button" // Important: C'est un bouton "normal", pas de soumission de formulaire
+              onClick={() => {
+                setShowNewPatientFields(true); // Affiche les champs
+                setSelectedPatient("new"); // Sélectionne "new" implicitement
+              }}
+              className="add-new-patient-btn" // Nouvelle classe pour styliser
+            >
+              + Ajouter un nouveau patient
+            </button>
+          )}
 
-  {/* Sélection du patient existant */}
-  <select
-    onChange={(e) => {
-      setSelectedPatient(e.target.value);
-      // Quand on choisit un patient existant, on masque les champs du nouveau patient
-      setShowNewPatientFields(false);
-      // Réinitialiser les champs du nouveau patient quand un existant est choisi
-      setNewPatientFirstName("");
-      setNewPatientLastName("");
-      setNewPatientPhoneNumber("");
-    }}
-    value={selectedPatient}
-  >
-    <option value="">Sélectionner un patient</option>
-    {patients.map((patient) => (
-      <option key={patient._id} value={patient._id}>
-        {patient.firstName} {patient.lastName} (N°{patient.patientNumber})
-      </option>
-    ))}
-  </select>
+          {/* Champs pour le nouveau patient (conditionnels) */}
+          {showNewPatientFields && (
+            <div className="new-patient-fields-container">
+              <h4>Nouveau Patient</h4>
+              <input
+                type="text"
+                placeholder="Prénom *"
+                value={newPatientFirstName}
+                onChange={(e) => setNewPatientFirstName(e.target.value)}
+                className="appointment-form-input"
+                required={showNewPatientFields} // Requis seulement si visible
+              />
+              <input
+                type="text"
+                placeholder="Nom *"
+                value={newPatientLastName}
+                onChange={(e) => setNewPatientLastName(e.target.value)}
+                className="appointment-form-input"
+                required={showNewPatientFields} // Requis seulement si visible
+              />
+              <input
+                type="text"
+                placeholder="Numéro de téléphone *"
+                value={newPatientPhoneNumber}
+                onChange={(e) => setNewPatientPhoneNumber(e.target.value)}
+                className="appointment-form-input"
+                required={showNewPatientFields} // Requis seulement si visible
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPatientFields(false)} // Masque les champs
+                className="cancel-add-patient-btn" // Nouvelle classe pour styliser
+              >
+                Annuler l'ajout
+              </button>
+            </div>
+          )}
 
-  {/* Bouton pour afficher les champs d'ajout de nouveau patient */}
-  {!showNewPatientFields && (
-    <button
-      type="button" // Important: C'est un bouton "normal", pas de soumission de formulaire
-      onClick={() => {
-        setShowNewPatientFields(true); // Affiche les champs
-        setSelectedPatient("new"); // Sélectionne "new" implicitement
-      }}
-      className="add-new-patient-btn" // Nouvelle classe pour styliser
-    >
-      + Ajouter un nouveau patient
-    </button>
-  )}
-
-  {/* Champs pour le nouveau patient (conditionnels) */}
-  {showNewPatientFields && (
-    <div className="new-patient-fields-container"> {/* Nouveau conteneur pour le style */}
-      <h4>Nouveau Patient</h4>
-      <input
-        type="text"
-        placeholder="Prénom *"
-        value={newPatientFirstName}
-        onChange={(e) => setNewPatientFirstName(e.target.value)}
-        className="appointment-form-input"
-        required={showNewPatientFields} // Requis seulement si visible
-      />
-      <input
-        type="text"
-        placeholder="Nom *"
-        value={newPatientLastName}
-        onChange={(e) => setNewPatientLastName(e.target.value)}
-        className="appointment-form-input"
-        required={showNewPatientFields} // Requis seulement si visible
-      />
-      <input
-        type="text"
-        placeholder="Numéro de téléphone *"
-        value={newPatientPhoneNumber}
-        onChange={(e) => setNewPatientPhoneNumber(e.target.value)}
-        className="appointment-form-input"
-        required={showNewPatientFields} // Requis seulement si visible
-      />
-      <button
-        type="button"
-        onClick={() => setShowNewPatientFields(false)} // Masque les champs
-        className="cancel-add-patient-btn" // Nouvelle classe pour styliser
-      >
-        Annuler l'ajout
-      </button>
-    </div>
-  )}
-
-  {/* Bouton principal pour programmer le rendez-vous (reste le même) */}
-  <button onClick={scheduleAppointment}>Programmer</button>
-</div>
+          {/* Bouton principal pour programmer le rendez-vous (reste le même) */}
+          <button onClick={scheduleAppointment}>Programmer</button>
+        </div>
         <Calendar
-        onChange={handleDateTimeChange}
-        value={date}
-        locale="fr-FR"
-        className="react-calendar"
-      />
-    </div>
+          onChange={handleDateTimeChange}
+          value={date}
+          locale="fr-FR"
+          className="react-calendar"
+        />
+      </div>
 
-    {/* Liste des rendez-vous pour la date sélectionnée */}
-    <div className="appointments-list" ref={appointmentsRef}>
-      <h3>Rendez-vous du {format(date, "dd/MM/yyyy")}</h3>
-      
-      {appointments.length === 0 ? (
-        <p>Aucun rendez-vous pour cette date</p>
-      ) : (
-        <table className="appointments-table">
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>N° Patient</th>
-              <th>Téléphone</th>
-              <th>Heure</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.flatMap((patient) =>
-              patient.appointments
-                .filter((appt) => {
-                  const apptDate = new Date(appt.date);
-                  return apptDate.toDateString() === date.toDateString();
-                })
-                .map((appt, index) => (
-                  <tr key={`${patient._id}-${index}`} className="appointment-row">
-                    <td>{patient.firstName} {patient.lastName}</td>
-                    <td>{patient.patientNumber}</td>
-                    <td>{patient.phoneNumber}</td>
-                    <td>
-                      <input
-                        type="time"
-                        value={appointmentTimes[appt._id] || ""}
-                        onChange={(e) => {
-                          const newTime = e.target.value;
-                          setAppointmentTimes((prev) => ({
-                            ...prev,
-                            [appt._id]: newTime,
-                          }));
-                          const newDate = new Date(appt.date);
-                          const [hours, minutes] = newTime.split(":");
-                          newDate.setHours(hours);
-                          newDate.setMinutes(minutes);
-                          handleUpdateAppointmentTime(patient._id, appt._id, newDate);
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <button
-                        className={patient.seen ? "btn-seen" : "btn-not-seen"}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMarkAsSeen(patient._id);
-                        }}
-                      >
-                        {patient.seen ? "Consulté ✅" : "En attente ❌"}
-                      </button>
-                    </td>
-                    <td>
-                      <button
-                        className="btn-view-file"
-                        onClick={() => handleViewPatientFile(patient._id)}
-                      >
-                        Voir le dossier
-                      </button>
-                    </td>
-                  </tr>
-                ))
-            )}
-          </tbody>
-        </table>
-      )}
+      {/* Liste des rendez-vous pour la date sélectionnée */}
+      <div className="appointments-list" ref={appointmentsRef}>
+        <h3>Rendez-vous du {format(date, "dd/MM/yyyy")}</h3>
+
+        {appointments.length === 0 ? (
+          <p>Aucun rendez-vous pour cette date</p>
+        ) : (
+          <table className="appointments-table">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>N° Patient</th>
+                <th>Téléphone</th>
+                <th>Heure</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.flatMap((patient) =>
+                patient.appointments
+                  .filter((appt) => {
+                    const apptDate = new Date(appt.date);
+                    return apptDate.toDateString() === date.toDateString();
+                  })
+                  .map((appt, index) => (
+                    <tr key={`${patient._id}-${index}`} className="appointment-row">
+                      <td>{patient.firstName} {patient.lastName}</td>
+                      <td>{patient.patientNumber}</td>
+                      <td>{patient.phoneNumber}</td>
+                      <td>
+                        <input
+                          type="time"
+                          value={appointmentTimes[appt._id] || ""}
+                          onChange={(e) => {
+                            const newTime = e.target.value;
+                            setAppointmentTimes((prev) => ({
+                              ...prev,
+                              [appt._id]: newTime,
+                            }));
+                            const newDate = new Date(appt.date);
+                            const [hours, minutes] = newTime.split(":");
+                            newDate.setHours(hours);
+                            newDate.setMinutes(minutes);
+                            handleUpdateAppointmentTime(patient._id, appt._id, newDate);
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className={patient.seen ? "btn-seen" : "btn-not-seen"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsSeen(patient._id);
+                          }}
+                        >
+                          {patient.seen ? "Consulté ✅" : "En attente ❌"}
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          className="btn-view-file"
+                          onClick={() => handleViewPatientFile(patient._id)}
+                        >
+                          Voir le dossier
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default AppointmentCalendar;

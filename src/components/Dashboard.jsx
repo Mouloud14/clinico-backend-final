@@ -9,7 +9,7 @@ const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [totalPatients, setTotalPatients] = useState(0);
   const [patientsToday, setPatientsToday] = useState(0);
-  const [unconsultedPatientsToday, setUnconsultedPatientsToday] = useState(0); // Nouvel état ajouté
+  const [unconsultedPatientsToday, setUnconsultedPatientsToday] = useState(0);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const navigate = useNavigate();
 
@@ -24,11 +24,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("BACKEND RESPONSE (patientsWithAppointmentsToday):", patientsWithAppointmentsToday);
-      console.log("NOMBRE DE RDV TROUVÉS (patientsWithAppointmentsToday.length):", patientsWithAppointmentsToday.length);
-      console.log("RDV FILTRÉS (allAppointments):", allAppointments);
-      console.log("NOMBRE DE RDV APRÈS FILTRAGE (allAppointments.length):", allAppointments.length);
-      console.log("NOMBRE DE RDV QUI SERA AFFICHÉ (patientsToday):", patientsToday);
       try {
         // Récupérer tous les patients
         const patientsResponse = await axios.get(
@@ -39,50 +34,61 @@ const Dashboard = () => {
 
         // Récupérer les rendez-vous du jour
         const today = new Date();
-today.setHours(0, 0, 0, 0); // Début de la journée
-const endOfDay = new Date(today);
-endOfDay.setHours(23, 59, 59, 999); // Fin de la journée
-
-const appointmentsResponse = await axios.get(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${format(today, "yyyy-MM-dd")}`,
-  { withCredentials: true }
-);
-
-// ... puis l'aplatissement et le tri ...
-const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
-  patient.appointments
-    .filter(appt => {
-        const apptDate = new Date(appt.date); // Date du RDV de la DB (UTC)
-        const today = new Date(); // Date locale actuelle
-
-        // Comparez UNIQUEMENT l'année, le mois et le jour en UTC
-        return (
-            apptDate.getUTCFullYear() === today.getUTCFullYear() &&
-            apptDate.getUTCMonth() === today.getUTCMonth() &&
-            apptDate.getUTCDate() === today.getUTCDate()
+       
+        const appointmentsResponse = await axios.get(
+          `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
+          { withCredentials: true }
         );
-    })
-    .map(appt => ({
-        ...appt,
-        patientId: patient._id,
-        firstName: patient.firstName,
-        lastName: patient.lastName,
-        phoneNumber: patient.phoneNumber,
-        seen: patient.seen
-    }))
-);
-setAppointments(sortedAppointments);
-setPatientsToday(sortedAppointments.length);
+
+        // Traitement des données des rendez-vous
+        const patientsWithAppointmentsToday = appointmentsResponse.data.patients || [];
+       
+        // Début et fin de la journée pour le filtrage
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Aplatir et filtrer les rendez-vous du jour
+        const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
+          patient.appointments
+            .filter(appt => {
+              const apptDate = new Date(appt.date);
+              return apptDate >= startOfDay && apptDate <= endOfDay;
+            })
+            .map(appt => ({
+              ...appt,
+              patientId: patient._id,
+              firstName: patient.firstName,
+              lastName: patient.lastName,
+              phoneNumber: patient.phoneNumber,
+              seen: patient.seen
+            }))
+        );
+
+        // Trier les rendez-vous par heure
+        const sortedAppointments = allAppointments.sort((a, b) =>
+          new Date(a.date) - new Date(b.date)
+        );
+
+        setAppointments(sortedAppointments);
+        setPatientsToday(sortedAppointments.length);
+       
+        // Compter les patients non consultés
+        const unconsulted = sortedAppointments.filter(appt => !appt.seen).length;
+        setUnconsultedPatientsToday(unconsulted);
 
       } catch (error) {
+        console.error("Erreur lors du chargement des données:", error);
         toast.error("Erreur de chargement des données");
         setAppointments([]);
         setPatientsToday(0);
         setUnconsultedPatientsToday(0);
       }
     };
-   if (isAuthenticated) { // <<< NE CHARGE LES DONNÉES QUE SI L'UTILISATEUR EST AUTHENTIFIÉ
-        fetchData();
+
+    if (isAuthenticated) {
+      fetchData();
     }
   }, [isAuthenticated]);
 
@@ -91,23 +97,87 @@ setPatientsToday(sortedAppointments.length);
       await axios.put(
         `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
         { seen: newStatus === "Vu" },
-        
+        { withCredentials: true }
       );
       toast.success("Statut mis à jour");
-      setUnconsultedPatientsToday(prev => newStatus === "Vu" ? prev - 1 : prev + 1);
-      setAppointments(prev => 
-        prev.map(appt => 
-          appt.patientId === patientId 
-            ? { ...appt, seen: newStatus === "Vu" } 
+     
+      // Mettre à jour le state local
+      setAppointments(prev =>
+        prev.map(appt =>
+          appt.patientId === patientId
+            ? { ...appt, seen: newStatus === "Vu" }
             : appt
         )
       );
+
+      // Recalculer le nombre de patients non consultés
+      const updatedAppointments = appointments.map(appt =>
+        appt.patientId === patientId
+          ? { ...appt, seen: newStatus === "Vu" }
+          : appt
+      );
+      const unconsulted = updatedAppointments.filter(appt => !appt.seen).length;
+      setUnconsultedPatientsToday(unconsulted);
+
     } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut:", error);
       toast.error("Échec de la mise à jour du statut");
     }
   };
 
-  // handleUpdateAppointmentTime reste identique...
+  const handleUpdateAppointmentTime = async (patientId, appointmentId, newDate) => {
+    try {
+      await axios.put(
+        "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
+        {
+          patientId,
+          appointmentId,
+          newAppointmentDate: newDate.toISOString(),
+        },
+        { withCredentials: true }
+      );
+      toast.success("Heure du rendez-vous mise à jour");
+     
+      // Recharger les données après la mise à jour
+      const today = new Date();
+      const appointmentsResponse = await axios.get(
+        `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
+        { withCredentials: true }
+      );
+     
+      const patientsWithAppointmentsToday = appointmentsResponse.data.patients || [];
+      const startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
+        patient.appointments
+          .filter(appt => {
+            const apptDate = new Date(appt.date);
+            return apptDate >= startOfDay && apptDate <= endOfDay;
+          })
+          .map(appt => ({
+            ...appt,
+            patientId: patient._id,
+            firstName: patient.firstName,
+            lastName: patient.lastName,
+            phoneNumber: patient.phoneNumber,
+            seen: patient.seen
+          }))
+      );
+
+      const sortedAppointments = allAppointments.sort((a, b) =>
+        new Date(a.date) - new Date(b.date)
+      );
+
+      setAppointments(sortedAppointments);
+     
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de l'heure:", error);
+      toast.error("Échec de la mise à jour de l'heure du rendez-vous");
+    }
+  };
 
   if (!isAuthenticated) {
     return <Navigate to={"/login"} />;
@@ -116,16 +186,15 @@ setPatientsToday(sortedAppointments.length);
   return (
     <section className="dashboard page">
       <div className="banner">
-      <div className="firstBox">
-  <div className="content">
-    <div>
-      <p>Bonjour Dr,</p>
-      <h5>{admin && `${admin.lastName} ${admin.firstName}`}</h5>
-    </div>
-    <p>{format(currentDateTime, "dd/MM/yyyy HH:mm:ss")}</p>
-   
-  </div>
-</div>
+        <div className="firstBox">
+          <div className="content">
+            <div>
+              <p>Bonjour Dr,</p>
+              <h5>{admin && `${admin.lastName} ${admin.firstName}`}</h5>
+            </div>
+            <p>{format(currentDateTime, "dd/MM/yyyy HH:mm:ss")}</p>
+          </div>
+        </div>
 
         <div className="secondBox" onClick={() => navigate("/patients")} style={{ cursor: "pointer" }}>
           <p>Nombre total de patients inscrits au cabinet :</p>
@@ -139,9 +208,8 @@ setPatientsToday(sortedAppointments.length);
           <h5>voir plus...</h5>
         </div>
 
-        {/* Nouvelle quatrième boîte ajoutée ici */}
-        <div 
-          className="fourthBox" 
+        <div
+          className="fourthBox"
           style={{ cursor: "pointer" }}
           onClick={() => {
             const element = document.getElementById('today-appointments');
@@ -157,67 +225,67 @@ setPatientsToday(sortedAppointments.length);
       </div>
 
       <div className="appointments-section" id="today-appointments">
-  <h5 className="appointments-title">Rendez-vous du jour</h5>
-  <div className="banner">
-    <table>
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Heure</th>
-              <th>Téléphone</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-  {appointments.length > 0 ? (
-    appointments.map((appointment) => (
-      <tr key={`${appointment.patientId}-${appointment.date}`}>
-        <td>{`${appointment.firstName} ${appointment.lastName}`}</td>
-        <td>
-          <input
-            type="time"
-            defaultValue={format(new Date(appointment.date), "HH:mm")}
-            onChange={(e) => {
-              const newTime = e.target.value;
-              const newDate = new Date(appointment.date);
-              const [hours, minutes] = newTime.split(":");
-              newDate.setHours(hours);
-              newDate.setMinutes(minutes);
-              handleUpdateAppointmentTime(appointment.patientId, appointment._id, newDate);
-            }}
-          />
-        </td>
-        <td>{appointment.phoneNumber}</td>
-        <td>
-          <select
-            className={appointment.seen ? "value-Vu" : "value-En attente"}
-            value={appointment.seen ? "Vu" : "En attente"}
-            onChange={(e) => handleUpdateStatus(appointment.patientId, e.target.value)}
-          >
-            <option value="En attente" className="value-En attente">
-              En attente ❌
-            </option>
-            <option value="Vu" className="value-Vu">
-              Consulté ✅
-            </option>
-          </select>
-        </td>
-        <td>
-          <button onClick={() => navigate(`/dossier-patient/${appointment.patientId}`)}>
-            Consulter Dossier
-          </button>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="5">Aucun rendez-vous aujourd'hui</td>
-    </tr>
-  )}
-</tbody>
-        </table>
-      </div>
+        <h5 className="appointments-title">Rendez-vous du jour</h5>
+        <div className="banner">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Heure</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.length > 0 ? (
+                appointments.map((appointment) => (
+                  <tr key={`${appointment.patientId}-${appointment.date}`}>
+                    <td>{`${appointment.firstName} ${appointment.lastName}`}</td>
+                    <td>
+                      <input
+                        type="time"
+                        defaultValue={format(new Date(appointment.date), "HH:mm")}
+                        onChange={(e) => {
+                          const newTime = e.target.value;
+                          const newDate = new Date(appointment.date);
+                          const [hours, minutes] = newTime.split(":");
+                          newDate.setHours(hours);
+                          newDate.setMinutes(minutes);
+                          handleUpdateAppointmentTime(appointment.patientId, appointment._id, newDate);
+                        }}
+                      />
+                    </td>
+                    <td>{appointment.phoneNumber}</td>
+                    <td>
+                      <select
+                        className={appointment.seen ? "value-Vu" : "value-En attente"}
+                        value={appointment.seen ? "Vu" : "En attente"}
+                        onChange={(e) => handleUpdateStatus(appointment.patientId, e.target.value)}
+                      >
+                        <option value="En attente" className="value-En attente">
+                          En attente ❌
+                        </option>
+                        <option value="Vu" className="value-Vu">
+                          Consulté ✅
+                        </option>
+                      </select>
+                    </td>
+                    <td>
+                      <button onClick={() => navigate(`/dossier-patient/${appointment.patientId}`)}>
+                        Consulter Dossier
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">Aucun rendez-vous aujourd'hui</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
