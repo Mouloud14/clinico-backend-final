@@ -24,6 +24,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log("BACKEND RESPONSE (patientsWithAppointmentsToday):", patientsWithAppointmentsToday);
+      console.log("NOMBRE DE RDV TROUVÉS (patientsWithAppointmentsToday.length):", patientsWithAppointmentsToday.length);
+      console.log("RDV FILTRÉS (allAppointments):", allAppointments);
+      console.log("NOMBRE DE RDV APRÈS FILTRAGE (allAppointments.length):", allAppointments.length);
+      console.log("NOMBRE DE RDV QUI SERA AFFICHÉ (patientsToday):", patientsToday);
       try {
         // Récupérer tous les patients
         const patientsResponse = await axios.get(
