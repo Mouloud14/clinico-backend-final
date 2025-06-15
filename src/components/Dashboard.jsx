@@ -39,7 +39,7 @@ const endOfDay = new Date(today);
 endOfDay.setHours(23, 59, 59, 999); // Fin de la journée
 
 const appointmentsResponse = await axios.get(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
+  `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${format(today, "yyyy-MM-dd")}`,
   
 );
 
