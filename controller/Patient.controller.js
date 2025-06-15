@@ -114,44 +114,50 @@ export const getAllPatients = async (req, res) => {
 
 export const getPatientsByDate = async (req, res) => {
   try {
-    const { date } = req.query; // date est une string ISO (ex: "2025-06-12T23:00:00.000Z")
+    const { date } = req.query; // Date reçue du frontend (maintenant "YYYY-MM-DD")
 
-    console.log("--- Début getPatientsByDate ---"); // <<< NOUVEAU LOG
-    console.log("Date reçue du frontend:", date);    // <<< NOUVEAU LOG
+    console.log("--- Début getPatientsByDate ---");
+    console.log("BACKEND: Date reçue du frontend (query param):", date);
 
-    const queryDate = new Date(date);
+    // Convertir la chaîne "YYYY-MM-DD" en objet Date, et le traiter comme UTC minuit du JOUR SPÉCIFIÉ
+    // C'est la clé pour ignorer le fuseau horaire du serveur lors de l'INTERPRÉTATION de la journée
+    const parsedDate = new Date(date + 'T00:00:00.000Z'); // Ajoute T00:00:00.000Z pour forcer l'interprétation UTC
+    // Log de l'objet Date après conversion
+    console.log("BACKEND: parsedDate objet Date (UTC minuit):", parsedDate);
 
-    const startOfDay = new Date(Date.UTC(
-        queryDate.getFullYear(),
-        queryDate.getMonth(),
-        queryDate.getDate(),
-        0, 0, 0, 0
-    ));
+    const startOfDay = parsedDate; // C'est déjà le début du jour en UTC
 
-    const endOfDay = new Date(Date.UTC(
-        queryDate.getFullYear(),
-        queryDate.getMonth(),
-        queryDate.getDate() + 1,
-        0, 0, 0, 0
-    ));
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setUTCDate(startOfDay.getUTCDate() + 1); // Le début du jour UTC suivant
 
-    console.log("Période de recherche UTC (début):", startOfDay.toISOString()); // <<< NOUVEAU LOG
-    console.log("Période de recherche UTC (fin):", endOfDay.toISOString());     // <<< NOUVEAU LOG
+    // Logs des bornes de recherche UTC
+    console.log("BACKEND: Période de recherche DB (startOfDay UTC):", startOfDay.toISOString());
+    console.log("BACKEND: Période de recherche DB (endOfDay UTC):", endOfDay.toISOString());
+
+    const doctorId = req.user._id;
 
     const patients = await Patient.find({
-      doctor: req.user._id, // Assurez-vous que req.user._id est défini (si 401, ce n'est pas le cas)
+      doctor: doctorId,
       'appointments.date': {
         $gte: startOfDay,
         $lt: endOfDay
       }
     });
 
-    console.log("Patients trouvés par getPatientsByDate:", patients.length); // <<< NOUVEAU LOG
-    console.log("--- Fin getPatientsByDate ---");     // <<< NOUVEAU LOG
+    console.log("BACKEND: Patients trouvés pour le médecin (ID):", doctorId);
+    console.log("BACKEND: Nombre de patients trouvés par getPatientsByDate:", patients.length);
+    if (patients.length > 0) {
+        patients.forEach(p => {
+            console.log(`BACKEND: Patient "${p.firstName} ${p.lastName}" trouvé avec RDV:`, p.appointments.map(a => a.date.toISOString()));
+        });
+    } else {
+        console.log("BACKEND: Aucun patient trouvé pour cette période."); // Log si aucun patient
+    }
 
     res.status(200).json({ patients });
   } catch (error) {
-    console.error("Erreur dans getPatientsByDate:", error);
+    console.error("BACKEND ERREUR dans getPatientsByDate:", error.message);
+    console.error("BACKEND DÉTAILS DE L'ERREUR:", error);
     res.status(500).json({ message: error.message });
   }
 };
