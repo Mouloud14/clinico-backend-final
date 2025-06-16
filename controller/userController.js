@@ -38,35 +38,52 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
   const { firstName, lastName, email, cabinetAddress, cabinetPhone, ordreNumber, specialite, password } = req.body;
 
+  console.log("BACKEND LOG: Début addNewAdmin. Données reçues:", req.body.email, req.body.ordreNumber); // <<< AJOUTÉ
+
   const requiredFields = ['firstName', 'lastName', 'email', 'cabinetAddress', 'cabinetPhone', 'ordreNumber', 'specialite', 'password'];
   const missingFields = requiredFields.filter(field => !req.body[field]);
-  
+
   if (missingFields.length > 0) {
+    console.error("BACKEND LOG: Champs manquants:", missingFields.join(', '));
     return next(new ErrorHandler(`Champs manquants : ${missingFields.join(', ')}`, 400));
   }
 
+  console.log("BACKEND LOG: Vérification email existant..."); // <<< AJOUTÉ
   const existingAdmin = await User.findOne({ email });
   if (existingAdmin) {
+    console.error("BACKEND LOG: Email déjà utilisé:", email);
     return next(new ErrorHandler("Cet email est déjà utilisé", 400));
   }
 
-  const admin = await User.create({
-    firstName,
-    lastName,
-    email,
-    cabinetAddress,
-    cabinetPhone,
-    ordreNumber,
-    specialite,
-    password,
-    role: "Admin"
-  });
+  console.log("BACKEND LOG: Création de l'utilisateur..."); // <<< AJOUTÉ
+  try {
+      const admin = await User.create({ // <<< C'EST ICI QUE L'ERREUR PEUT SE PRODUIRE
+        firstName,
+        lastName,
+        email,
+        cabinetAddress,
+        cabinetPhone,
+        ordreNumber,
+        specialite,
+        password,
+        role: "Admin"
+      });
+      console.log("BACKEND LOG: Utilisateur créé avec succès:", admin.email); // <<< AJOUTÉ
 
-  res.status(201).json({
-    success: true,
-    message: "Nouvel administrateur créé",
-    admin
-  });
+      res.status(201).json({
+        success: true,
+        message: "Nouvel administrateur créé",
+        admin
+      });
+  } catch (error) {
+      if (error.name === 'ValidationError') {
+          const errors = Object.keys(error.errors).map(key => error.errors[key].message);
+          console.error("BACKEND LOG: Erreur de validation du schéma:", errors.join(', '));
+          return next(new ErrorHandler(`Erreur de validation: ${errors.join(', ')}`, 400));
+      }
+      console.error("BACKEND LOG: Erreur INATTENDUE lors de l'ajout d'admin:", error);
+      return next(new ErrorHandler("Erreur interne du serveur", 500));
+  }
 });
 
 // Conserver uniquement les fonctions utiles
