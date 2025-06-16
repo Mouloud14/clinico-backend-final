@@ -14,7 +14,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const { isAuthenticated, admin } = useContext(Context);
-
+if (isAuthenticated === undefined) { // Utilisez 'undefined' si vous initialisez isAuthenticated à undefined dans Context
+  // Ou si vous l'initialisez à null: if (isAuthenticated === null)
+  // Ceci est pour un état initial où l'authentification n'a pas encore été vérifiée
+  return <div>Chargement de l'authentification...</div>;
+}
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -214,6 +218,7 @@ const fetchData = async () => {
   };
 
   if (!isAuthenticated) {
+    console.log("DASHBOARD LOG: Non authentifié, redirection vers /login.");
     return <Navigate to={"/login"} />;
   }
 

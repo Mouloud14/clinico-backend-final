@@ -30,7 +30,7 @@ const App = () => {
       try {
         const response = await axios.get(
           "https://clinico-backend-final.onrender.com/api/v1/user/admin/me",
-          
+          { withCredentials: true }
         );
         setIsAuthenticated(true);
         setAdmin(response.data.user);
@@ -45,7 +45,11 @@ const App = () => {
     };
     fetchUser();
   }, [isAuthenticated]); // Déclenché quand isAuthenticated change
-
+  if (!isAuthenticated) {
+    console.log("APP LOG: Non authentifié, retour vers /login"); // <<< AJOUTÉ
+    // Il y a déjà un return <Navigate to={"/login"} />; dans Dashboard.jsx,
+    // donc assurez-vous qu'il n'y a pas un Navigate ici qui écrase tout.
+  }
   return (
     <Router>
       <Sidebar />
