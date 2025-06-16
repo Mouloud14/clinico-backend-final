@@ -17,7 +17,9 @@ import PrescriptionOptions from "./components/PrescriptionOptions";
 import Bilan from "./components/Bilan";
 import CertificatArret from "./components/CertificatArret";
 import Justification from "./components/Justification";
+import Blocnote from "./components/Blocnote";
 import "./App.css";
+axios.defaults.withCredentials = true;
 
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin } =
@@ -27,20 +29,22 @@ const App = () => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(
-          "https://medical-app-wp1w.onrender.com",
-          {
-            withCredentials: true,
-          }
+          "https://clinico-backend-final.onrender.com/api/v1/user/admin/me",
+          
         );
         setIsAuthenticated(true);
         setAdmin(response.data.user);
       } catch (error) {
         setIsAuthenticated(false);
         setAdmin({});
+        // Si l'utilisateur n'est pas authentifié et qu'il n'est pas sur la page de login, redirigez-le
+        // if (window.location.pathname !== "/login") {
+        //   window.location.href = "/login"; // Redirige de force
+        // }
       }
     };
     fetchUser();
-  }, [isAuthenticated]);
+  }, [isAuthenticated]); // Déclenché quand isAuthenticated change
 
   return (
     <Router>
@@ -59,6 +63,8 @@ const App = () => {
         <Route path="/certificat-arret" element={<CertificatArret />} />
         <Route path="/justification" element={<Justification />} />
         <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/blocnote" element={<Blocnote />} />
+        <Route path="/modifier-patient/:id" element={<AddNewPatient />} />
      </Routes>
       <ToastContainer position="top-center" />
     </Router>

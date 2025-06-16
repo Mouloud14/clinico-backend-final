@@ -20,6 +20,7 @@ export const addNewPatient = async (req, res) => {
       email,
       nextAppointment,
     } = req.body;
+    
 
     // Vérifier si le numéro du patient existe déjà pour ce médecin
     const existingPatient = await Patient.findOne({ 
@@ -30,14 +31,18 @@ export const addNewPatient = async (req, res) => {
       return res.status(400).json({ message: "Patient number already in use" });
     }
 
-    // Vérifier si l'email existe déjà pour ce médecin
-    const existingEmail = await Patient.findOne({ 
-      email,
-      doctor: doctorId 
+  
+
+
+if (email && email.trim() !== "") { // Assurez-vous que l'email n'est pas vide ou juste des espaces
+    const existingEmail = await Patient.findOne({
+        email: email.toLowerCase(), 
+        doctor: doctorId
     });
     if (existingEmail) {
-      return res.status(400).json({ message: "Email déjà utilisé." });
+        return res.status(400).json({ message: "Cet email est déjà utilisé par un autre patient de ce médecin." });
     }
+}
 
     // Gestion des fichiers médicaux
     const medicalFiles = [];
@@ -107,28 +112,78 @@ export const getAllPatients = async (req, res) => {
   }
 };
 
+// backend/controller/Patient.controller.js
+
+// ... (vos autres importations et fonctions au-dessus) ...
+
 export const getPatientsByDate = async (req, res) => {
+  console.log("----- BACKEND: getPatientsByDate FONCTION APPELÉE -----");
   try {
-    const { date } = req.query;
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
+    const { date } = req.query; // Date reçue du frontend (doit être "YYYY-MM-DD")
+
+    console.log("BACKEND: Date reçue du frontend (query param):", date);
+
+    // Crée un objet Date à partir de "YYYY-MM-DD" (interprété en heure locale)
+    // Par exemple, "2025-06-16" deviendra "Mon Jun 16 2025 00:00:00 GMT+0100 (heure locale)"
+    const localDate = new Date(date);
+    console.log("BACKEND: localDate (interprété localement):", localDate.toString());
+
+    // Construction des bornes UTC précises pour cette journée.
+    // Date.UTC() construit une date directement en UTC sans tenir compte du fuseau horaire local.
+    const startOfDayUTC = new Date(Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate(), // Ceci prend le jour LOCAL de 'localDate'
+        0, 0, 0, 0 // Minuit UTC
+    ));
+
+    // Le début du jour suivant en UTC
+    const endOfDayUTC = new Date(Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate() + 1, // Le jour LOCAL suivant
+        0, 0, 0, 0 // Minuit UTC du jour suivant
+    ));
+
+    console.log("BACKEND: Période de recherche DB (startOfDay UTC):", startOfDayUTC.toISOString());
+    console.log("BACKEND: Période de recherche DB (endOfDay UTC):", endOfDayUTC.toISOString());
+
+    const doctorId = req.user._id; // Récupérer l'ID du médecin connecté (doit être authentifié)
+
+    // Log de la tentative de recherche DB
+    console.log("BACKEND: Tentative de recherche DB avec doctorId:", doctorId);
+    if (!req.user || !req.user._id) {
+        console.error("BACKEND: ERREUR - ID Docteur manquant dans req.user pour getPatientsByDate!");
+        return res.status(401).json({ message: "Authentification requise pour cette opération." });
+    }
 
     const patients = await Patient.find({
-      doctor: req.user._id,
-      'appointments.date': {
-        $gte: startDate,
-        $lt: endDate
+      doctor: doctorId, // Filtrer par le médecin connecté
+      'appointments.date': { // Rechercher dans les rendez-vous
+        $gte: startOfDayUTC, // Date de rendez-vous >= début du jour UTC
+        $lt: endOfDayUTC     // Date de rendez-vous < début du jour UTC suivant
       }
     });
 
+    console.log("BACKEND: Nombre de patients trouvés par getPatientsByDate:", patients.length);
+    if (patients.length > 0) {
+        patients.forEach(p => {
+            console.log(`BACKEND: Patient "${p.firstName} ${p.lastName}" trouvé avec RDV:`, p.appointments.map(a => a.date.toISOString()));
+        });
+    } else {
+        console.log("BACKEND: Aucun patient trouvé pour cette période.");
+    }
+    console.log("--- Fin getPatientsByDate ---");
+
     res.status(200).json({ patients });
   } catch (error) {
+    console.error("BACKEND ERREUR générale dans getPatientsByDate:", error.message);
+    console.error("BACKEND DÉTAILS DE L'ERREUR complète:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 export const getPatientById = async (req, res) => {
   try {
@@ -399,6 +454,119 @@ export const updatePatientPhoneNumber = async (req, res) => {
 
     res.status(200).json({ message: "Numéro de téléphone mis à jour avec succès", patient });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}; 
+
+
+// Ajoutez cette fonction dans votre Patient.controller.js
+
+export const addNoteToPatient = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({
+      _id: req.params.id,
+      doctor: req.user._id
+    });
+    
+    if (!patient) {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    const noteData = {
+      date: new Date(),
+      doctorName: req.body.doctorName,
+      doctor: req.body.doctor,
+      noteText: req.body.noteText
+    };
+
+    patient.notes.push(noteData);
+    await patient.save();
+
+    res.status(200).json({ message: "Note ajoutée avec succès", patient });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Ajoutez cette nouvelle fonction dans votre Patient.controller.js
+
+export const updatePatientInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Trouver le patient
+    const patient = await Patient.findOne({
+      _id: id,
+      doctor: req.user._id
+    });
+    
+    if (!patient) {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    // Vérifier si l'email existe déjà pour un autre patient
+    if (updateData.email && updateData.email !== patient.email) {
+  if (updateData.email.trim() !== "") { // <<< Ajoutez cette condition pour les emails non vides
+    const existingEmail = await Patient.findOne({
+      email: updateData.email.toLowerCase(), // Bonne pratique: stocker emails en minuscules
+      doctor: req.user._id,
+      _id: { $ne: id }
+    });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email déjà utilisé par un autre patient." });
+    }
+  }
+}
+
+    // Gestion des fichiers médicaux
+    const medicalFiles = [];
+    if (req.files) {
+      const files = req.files.filter(file => file.fieldname === 'medicalFiles');
+      for (const file of files) {
+        const fileBuffer = file.buffer;
+        const base64File = fileBuffer.toString("base64");
+        const dataURI = `data:${file.mimetype};base64,${base64File}`;
+        medicalFiles.push({ 
+          url: dataURI, 
+          addedDate: new Date() 
+        });
+      }
+    }
+
+    // Gestion de l'image de profil
+    let profileImage = patient.profileImage;
+    const profileImageFile = req.files?.find(file => file.fieldname === 'profileImage');
+    if (profileImageFile) {
+      const base64Image = profileImageFile.buffer.toString("base64");
+      const dataURI = `data:${profileImageFile.mimetype};base64,${base64Image}`;
+      profileImage = { 
+        url: dataURI, 
+        addedDate: new Date() 
+      };
+    }
+
+    // Mettre à jour les données
+    const updatedPatient = await Patient.findByIdAndUpdate(
+      id,
+      {
+        ...updateData,
+        ...(medicalFiles.length > 0 && { 
+          medicalFiles: [...(patient.medicalFiles || []), ...medicalFiles] 
+        }),
+        ...(profileImage && { profileImage })
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({ 
+      message: "Informations du patient mises à jour avec succès", 
+      patient: updatedPatient 
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: "Données invalides", error: error.message });
+    }
     res.status(500).json({ message: error.message });
   }
 };

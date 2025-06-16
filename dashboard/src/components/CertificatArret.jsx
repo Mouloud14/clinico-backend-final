@@ -30,8 +30,8 @@ const CertificatArret = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/v1/patient/patients", 
-          { withCredentials: true }
+        const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients", 
+          
         );
         setPatients(response.data.patients);
       } catch (error) {
@@ -120,9 +120,9 @@ const CertificatArret = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/v1/patient/${selectedPatient}/add-certificat`,
+        `https://clinico-backend-final.onrender.com/api/v1/patient/${selectedPatient}/add-certificat`,
         certificatData,
-        { withCredentials: true }
+        
       );
 
       if (response.status === 200) {

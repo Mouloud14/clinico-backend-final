@@ -7,21 +7,20 @@ const patientSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
-    patientNumber: { type: String, required: true},
+    patientNumber: { type: String, required: false}, // Modifié: non obligatoire
    
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { 
       type: String, 
-      required: true, 
-      unique: true,
+      required: false, // Modifié: non obligatoire
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Email invalide"]
     },
-    address: { type: String, required: true },
-    dob: { type: Date, required: true },
-    weight: { type: Number, required: true },
-    height: { type: Number, required: true },
-    bloodGroup: { type: String, required: true },
+    address: { type: String, required: false }, // Modifié: non obligatoire
+    dob: { type: Date, required: false }, // Modifié: non obligatoire
+    weight: { type: Number, required: false }, // Modifié: non obligatoire
+    height: { type: Number, required: false }, // Modifié: non obligatoire
+    bloodGroup: { type: String, required: false }, // Modifié: non obligatoire
     chronicDiseases: { type: String },
     pastSurgeries: { type: String },
     medicalFiles: [{
@@ -35,7 +34,7 @@ const patientSchema = new mongoose.Schema(
     phoneNumber: { type: String, required: true },
     gender: {
       type: String,
-      required: true,
+      required: false, // Modifié: non obligatoire
       enum: ["Male", "Female", "Other"]
     },
     appointments: [{
@@ -56,11 +55,9 @@ const patientSchema = new mongoose.Schema(
       prolongationStart: Date,
       prolongationEnd: Date,
       returnDate: Date,
-      arretJours: String, // Ajouté
-      prolongationJours: String // Ajouté
+      arretJours: String,
+      prolongationJours: String
     }],
-    
-    
     
     bilans: [{
       date: Date,
@@ -82,48 +79,58 @@ const patientSchema = new mongoose.Schema(
       }
     }],
     
-    
-    
-    
-    
-justifications: [{
-   date: Date,
-   doctorName: String,
-   doctor: {
-     cabinetPhone: String,
-     ordreNumber: String,
-     cabinetAddress: String,
-  },
-     justificationText: String
-}],
+    justifications: [{
+       date: Date,
+       doctorName: String,
+       doctor: {
+         cabinetPhone: String,
+         ordreNumber: String,
+         cabinetAddress: String,
+      },
+         justificationText: String
+    }],
 
+    notes: [{
+      date: Date,
+      doctorName: String,
+      doctor: {
+        cabinetPhone: String,
+        ordreNumber: String,
+        cabinetAddress: String,
+      },
+      noteText: String
+    }],
 
-
-
-
-prescriptions: [{
-  date: Date,
-  doctorName: String,
-  doctor: {
-    cabinetPhone: String,
-    ordreNumber: String,
-    cabinetAddress: String,
-  },
-  medications: [{
-    name: String,
-    dosage: String,
-    frequency: String,
-    boxes: Number,
-    duration: String,
-    note: String 
-    
-  }],
-  
-}],
+    prescriptions: [{
+      date: Date,
+      doctorName: String,
+      doctor: {
+        cabinetPhone: String,
+        ordreNumber: String,
+        cabinetAddress: String,
+      },
+      medications: [{
+        name: String,
+        dosage: String,
+        frequency: String,
+        boxes: Number,
+        duration: String,
+        note: String 
+      }],
+    }],
    
-registrationDate: { type: Date, default: Date.now } // Ajout de la date d'inscription
-},
+    registrationDate: { type: Date, default: Date.now }
+  },
   { timestamps: true }
 );
+
+// Méthode pour générer automatiquement un numéro de patient
+patientSchema.pre('save', async function(next) {
+  if (!this.patientNumber) {
+    const count = await this.constructor.countDocuments({ doctor: this.doctor });
+    this.patientNumber = `P${String(count + 1).padStart(4, '0')}`;
+  }
+  next();
+});
 
 export const Patient = mongoose.model("Patient", patientSchema);

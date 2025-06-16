@@ -20,9 +20,8 @@ const ChangePassword = () => {
 
     try {
       const res = await axios.put(
-        'http://localhost:4000/api/v1/user/change-password',
+        'https://clinico-backend-final.onrender.com/api/v1/user/change-password',
         { oldPassword, newPassword },
-        { withCredentials: true }
       );
       
       toast.success(res.data.message);

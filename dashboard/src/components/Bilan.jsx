@@ -32,8 +32,8 @@ const Bilan = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/v1/patient/patients",
-           { withCredentials: true }
+        const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+          
         );
         setPatients(response.data.patients);
       } catch (error) {
@@ -75,7 +75,7 @@ const Bilan = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/v1/patient/${selectedPatient}/add-bilan`,
+        `https://clinico-backend-final.onrender.com/api/v1/patient/${selectedPatient}/add-bilan`,
         bilanData,
         {
           withCredentials: true // Ajouté ici

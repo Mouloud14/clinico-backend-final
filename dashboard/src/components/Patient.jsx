@@ -5,15 +5,14 @@ import { useNavigate } from "react-router-dom";
 const Patient = () => {
   const [patients, setPatients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingPhoneNumber, setEditingPhoneNumber] = useState(null);
-  const [newPhoneNumber, setNewPhoneNumber] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:4000/api/v1/patient/patients", 
+          "https://clinico-backend-final.onrender.com/api/v1/patient/patients", 
           { 
             withCredentials: true // Ajoutez cette ligne
           }
@@ -30,22 +29,7 @@ const Patient = () => {
   const handlePatientClick = (patientId) => {
     navigate(`/dossier-patient/${patientId}`);
   };
-  const handleUpdatePhoneNumber = async (patientId) => {
-    try {
-      const response = await axios.put(
-        `http://localhost:4000/api/v1/patient/${patientId}/update-phone-number`,
-        {
-          phoneNumber: newPhoneNumber,
-        },
-        {
-          withCredentials: true // Ajoutez cette ligne
-        }
-      );
-      // ... reste du code
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du numéro de téléphone :", error);
-    }
-  };
+;
 
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
@@ -91,38 +75,13 @@ const Patient = () => {
               <td>{patient.lastName}</td>
               <td>{patient.firstName}</td>
               <td>
-                {editingPhoneNumber === patient._id ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <input
-                      type="text"
-                      value={newPhoneNumber}
-                      onChange={(e) => setNewPhoneNumber(e.target.value)}
-                      style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    />
-                    <button
-                      onClick={() => handleUpdatePhoneNumber(patient._id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                    >
-                      <i className="fas fa-check" style={{ color: 'green', fontSize: '16px' }}></i>
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {patient.phoneNumber}
-                    <button
-                      onClick={() => setEditingPhoneNumber(patient._id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                    >
-                      <i className="fas fa-pen" style={{ color: '#3939d9f2', fontSize: '14px' }}></i>
-                    </button>
-                  </div>
-                )}
-              </td>
+  {patient.phoneNumber} {/* Affiche seulement le numéro de téléphone */}
+</td>
               <td>
-                <button onClick={() => handlePatientClick(patient._id)}>
-                  Voir Dossier
-                </button>
-              </td>
+  <button className="btn-view" onClick={() => handlePatientClick(patient._id)}> 
+    Voir Dossier
+  </button>
+</td>
             </tr>
           ))}
         </tbody>

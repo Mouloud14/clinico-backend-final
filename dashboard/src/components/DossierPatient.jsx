@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Modal from "react-modal";
 import "../App.css";
@@ -8,6 +8,7 @@ Modal.setAppElement("#root");
 
 const DossierPatient = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,7 +17,7 @@ const DossierPatient = () => {
   useEffect(() => {
     const fetchPatientDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/v1/patient/${id}`, {
+        const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/patient/${id}`, {
           withCredentials: true,
         });
         setPatient(response.data);
@@ -38,7 +39,7 @@ const DossierPatient = () => {
 
       try {
         const response = await axios.put(
-          `http://localhost:4000/api/v1/patient/${id}/add-medical-files`,
+          `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/add-medical-files`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -51,6 +52,7 @@ const DossierPatient = () => {
       }
     }
   };
+
   const calculateAge = (dob) => {
     const today = new Date();
     const birthDate = new Date(dob);
@@ -61,9 +63,15 @@ const DossierPatient = () => {
     }
     return age;
   };
+
   const handleFileClick = (fileUrl) => {
     setSelectedFile(fileUrl);
     setIsModalOpen(true);
+  };
+
+  // Fonction pour rediriger vers la page de modification
+  const handleEditPatient = () => {
+    navigate(`/modifier-patient/${id}`);
   };
 
   const getGroupedDocuments = () => {
@@ -73,7 +81,8 @@ const DossierPatient = () => {
       ...(patient.prescriptions || []).map(d => ({ ...d, type: "prescription" })),
       ...(patient.bilans || []).map(d => ({ ...d, type: "bilan" })),
       ...(patient.certificats || []).map(d => ({ ...d, type: "arret" })),
-      ...(patient.justifications || []).map(d => ({ ...d, type: "justification" }))
+      ...(patient.justifications || []).map(d => ({ ...d, type: "justification" })),
+      ...(patient.notes || []).map(d => ({ ...d, type: "note" }))
     ];
 
     const sorted = allDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -88,6 +97,8 @@ const DossierPatient = () => {
 
   const renderDocument = (doc) => {
     switch (doc.type) {
+      
+      
       case "prescription":
   return (
     <div className="prescription-card" key={doc._id}>
@@ -132,6 +143,11 @@ const DossierPatient = () => {
               </div>
     </div>
   );
+
+
+
+  
+
 
   case "bilan":
     const tests = Object.entries(doc.tests).filter(([_, v]) => v).map(([k]) => k);
@@ -266,7 +282,44 @@ const DossierPatient = () => {
               </div>
               </div>
             );
-          
+
+
+            case "note":
+              return (
+                <div className="note-card" key={doc._id}>
+                  <div className="doctor-info-small">
+                    <p><strong>Médecin :</strong> {doc.doctorName}</p>
+                    <p><strong>Téléphone :</strong> {doc.doctor?.cabinetPhone || "Non renseigné"}</p>
+                    <p><strong>N° Ordre :</strong> {doc.doctor?.ordreNumber || "Non renseigné"}</p>
+                    <p><strong>Adresse :</strong> {doc.doctor?.cabinetAddress || "Non renseigné"}</p>
+                  </div>
+                  
+                  <div className="patient-data-container">
+                    <p className="patient-data">Nom : {patient.lastName}</p>
+                    <span className="separator">|</span>
+                    <p className="patient-data">Prénom : {patient.firstName}</p>
+                    <span className="separator">|</span>
+                    <p className="patient-data">Age : {calculateAge(patient.dob)}</p>
+                  </div>
+                  
+                  <div className="document-date">
+                    <p><strong>Le :</strong> {new Date(doc.date).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                  
+                  <strong className="titre">NOTE MÉDICALE</strong>
+                  
+                  <div className="note-content-display">
+                    {doc.noteText.split('\n').map((line, idx) => (
+                      <p key={idx}>{line}</p>
+                    ))}
+                  </div>
+                  
+                  <div className="signature">
+                    <p>Signature et cachet du médecin</p>
+                    <p> {doc.doctorName} </p>
+                  </div>
+                </div>
+              );
 
       default:
         return null;
@@ -292,6 +345,15 @@ const DossierPatient = () => {
     </div>
   )}
         <h2>{patient.firstName} {patient.lastName}</h2>
+        
+        {/* Bouton Modifier ajouté ici */}
+        <button 
+  onClick={handleEditPatient}
+  className="edit-patient-button"
+>
+  ✏️ Modifier les informations
+</button>
+        
         <p><strong>Numéro patient:</strong> {patient.patientNumber}</p>
         <p><strong>Sexe:</strong> {
   patient.gender === "Male" ? "Masculin" :

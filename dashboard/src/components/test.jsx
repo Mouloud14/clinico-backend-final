@@ -15,8 +15,8 @@ const DossierPatient = () => {
   useEffect(() => {
     const fetchPatientDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/v1/patient/${id}`, 
-          { withCredentials: true }
+        const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/patient/${id}`, 
+          
         );
         setPatient(response.data);
       } catch (error) {
@@ -26,8 +26,8 @@ const DossierPatient = () => {
 
     const fetchPrescriptions = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/v1/prescriptions/patient/${id}`,
-          { withCredentials: true }
+        const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/prescriptions/patient/${id}`,
+          
         );
         setPrescriptions(response.data);
       } catch (error) {
@@ -49,7 +49,7 @@ const DossierPatient = () => {
 
       try {
         const response = await axios.put(
-          `http://localhost:4000/api/v1/patient/${id}/add-medical-files`,
+          `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/add-medical-files`,
           formData,
           {
             headers: {
@@ -69,7 +69,7 @@ const DossierPatient = () => {
 useEffect(() => {
   const fetchAdminDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/v1/admin/${id}`);
+      const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/admin/${id}`);
       setAdmin(response.data);
     } catch (error) {
       console.error("Erreur lors de la récupération des détails de l'admin :", error);
