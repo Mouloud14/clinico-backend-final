@@ -23,70 +23,104 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Récupérer tous les patients
-        const patientsResponse = await axios.get(
-          "https://clinico-backend-final.onrender.com/api/v1/patient/patients",
-          { withCredentials: true }
-        );
-        setTotalPatients(patientsResponse.data.patients.length);
+   // Dans src/components/Dashboard.jsx
 
-        // Récupérer les rendez-vous du jour
-        const today = new Date();
-       
-        const appointmentsResponse = await axios.get(
-          `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
-          { withCredentials: true }
-        );
+// ... (vos autres fonctions et états avant fetchData) ...
 
-        // Traitement des données des rendez-vous
-        const patientsWithAppointmentsToday = appointmentsResponse.data.patients || [];
-       
-        // Début et fin de la journée pour le filtrage
-        const startOfDay = new Date(today);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(today);
-        endOfDay.setHours(23, 59, 59, 999);
+const fetchData = async () => {
+  try {
+    // Récupérer tous les patients
+    const patientsResponse = await axios.get(
+      "https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+      { withCredentials: true }
+    );
+    console.log("DASHBOARD LOG: Réponse Patients (tous) :", patientsResponse.data.patients.length);
+    setTotalPatients(patientsResponse.data.patients.length);
 
-        // Aplatir et filtrer les rendez-vous du jour
-        const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
-          patient.appointments
+    // Récupérer les rendez-vous du jour
+    const today = new Date(); // 
+
+    const startOfCurrentDayUTC = new Date(Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(), // Ceci prend le jour LOCAL de 'today'
+        0, 0, 0, 0 // À minuit UTC
+    ));
+
+    const endOfCurrentDayUTC = new Date(Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 1, 
+        0, 0, 0, 0 
+    ));
+
+    
+    const formattedDateForBackend = format(today, "yyyy-MM-dd");
+
+    console.log("DASHBOARD LOG: Date locale actuelle (raw) :", today.toString());
+    console.log("DASHBOARD LOG: Date formatée pour backend (YYYY-MM-DD) :", formattedDateForBackend);
+    console.log("DASHBOARD LOG: Bornes de filtrage frontend (start UTC) :", startOfCurrentDayUTC.toISOString());
+    console.log("DASHBOARD LOG: Bornes de filtrage frontend (end UTC) :", endOfCurrentDayUTC.toISOString());
+    console.log("DASHBOARD LOG: URL de la requête by-date :", `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${formattedDateForBackend}`);
+    
+    const appointmentsResponse = await axios.get(
+      `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${formattedDateForBackend}`,
+      { withCredentials: true }
+    );
+
+    const patientsWithAppointmentsToday = appointmentsResponse.data.patients || [];
+    
+    console.log("DASHBOARD LOG: Patients AVEC RDV (réponse brute du backend) :", patientsWithAppointmentsToday.length);
+    console.log("DASHBOARD LOG: Contenu patientsWithAppointmentsToday (réponse brute du backend) :", patientsWithAppointmentsToday);
+    // --- FIN GESTION PRÉCISE DES DATES UTC ---
+
+
+    const unconsultedCount = patientsWithAppointmentsToday.filter(
+        patient => !patient.seen
+    ).length;
+    setUnconsultedPatientsToday(unconsultedCount);
+
+    // Filter les rendez-vous côté client, en comparant les dates UTC avec les bornes UTC
+    const allAppointments = patientsWithAppointmentsToday.flatMap(patient =>
+        patient.appointments
             .filter(appt => {
-              const apptDate = new Date(appt.date);
-              return apptDate >= startOfDay && apptDate <= endOfDay;
+                const apptDate = new Date(appt.date); // Date du RDV de la DB (est déjà un objet Date en UTC)
+                
+                // Compare la date UTC du RDV avec les bornes UTC du jour actuel de l'utilisateur
+                const isSameDay = (
+                    apptDate >= startOfCurrentDayUTC && apptDate < endOfCurrentDayUTC
+                );
+                
+                console.log(`DASHBOARD LOG: Comparaison RDV ${apptDate.toISOString()} (DB UTC) avec [${startOfCurrentDayUTC.toISOString()} - ${endOfCurrentDayUTC.toISOString()}[. Match: ${isSameDay}`);
+                return isSameDay;
             })
             .map(appt => ({
-              ...appt,
-              patientId: patient._id,
-              firstName: patient.firstName,
-              lastName: patient.lastName,
-              phoneNumber: patient.phoneNumber,
-              seen: patient.seen
+                // S'assurer d'inclure toutes les infos nécessaires pour le tableau
+                ...appt,
+                patientId: patient._id,
+                firstName: patient.firstName,
+                lastName: patient.lastName,
+                phoneNumber: patient.phoneNumber,
+                seen: patient.seen
             }))
-        );
+    );
 
-        // Trier les rendez-vous par heure
-        const sortedAppointments = allAppointments.sort((a, b) =>
-          new Date(a.date) - new Date(b.date)
-        );
+    const sortedAppointments = allAppointments.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        setAppointments(sortedAppointments);
-        setPatientsToday(sortedAppointments.length);
-       
-        // Compter les patients non consultés
-        const unconsulted = sortedAppointments.filter(appt => !appt.seen).length;
-        setUnconsultedPatientsToday(unconsulted);
+    console.log("DASHBOARD LOG: RDV filtrés et triés pour affichage sur Dashboard :", sortedAppointments.length);
+    console.log("DASHBOARD LOG: Contenu sortedAppointments (prêt à afficher) :", sortedAppointments);
 
-      } catch (error) {
-        console.error("Erreur lors du chargement des données:", error);
-        toast.error("Erreur de chargement des données");
-        setAppointments([]);
-        setPatientsToday(0);
-        setUnconsultedPatientsToday(0);
-      }
-    };
+    setAppointments(sortedAppointments);
+    setPatientsToday(sortedAppointments.length); // Met à jour le nombre total de RDV du jour
 
+  } catch (error) {
+    console.error("DASHBOARD LOG: Erreur lors du chargement des données (catch):", error.response?.data?.message || error.message);
+    console.error("DASHBOARD LOG: Détails de l'erreur complète:", error);
+    setAppointments([]);
+    setPatientsToday(0);
+    setUnconsultedPatientsToday(0);
+  }
+};
     if (isAuthenticated) {
       fetchData();
     }

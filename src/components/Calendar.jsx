@@ -40,29 +40,45 @@ const AppointmentCalendar = () => {
   }, [appointments]);
 
   // Fonction pour récupérer les rendez-vous d'une date spécifique
-  const fetchAppointments = async (selectedDate) => {
-    try {
-      const response = await axios.get(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${selectedDate.toISOString()}`,
-        { withCredentials: true }
-      );
-      setAppointments(response.data.patients);
-    } catch (error) {
-      toast.error("Erreur lors du chargement des rendez-vous");
-    }
-  };
+// Dans Calendar.jsx
+// ...
+const fetchAppointments = async (selectedDate) => {
+  console.log("CALENDAR: Requête RDV pour date:", selectedDate.toISOString()); // <<< AJOUTÉ
+  try {
+    const response = await axios.get(
+      `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${format(selectedDate, "yyyy-MM-dd")}`,
+      { withCredentials: true }
+    );
+    console.log("CALENDAR: Réponse RDV (patients trouvés):", response.data.patients.length); // <<< AJOUTÉ
+    if (response.data.patients.length > 0) { // <<< AJOUTÉ
+        response.data.patients.forEach(p => { // <<< AJOUTÉ
+            console.log(`CALENDAR: RDV patient: ${p.firstName} ${p.lastName}, RDV dates: ${p.appointments.map(a => new Date(a.date).toISOString())}`); // <<< AJOUTÉ
+        }); // <<< AJOUTÉ
+    } // <<< AJOUTÉ
+    setAppointments(response.data.patients);
+  } catch (error) {
+    console.error("CALENDAR ERREUR fetchAppointments:", error.response?.data?.message || error.message); // <<< AJOUTÉ
+    console.error("CALENDAR DÉTAILS ERREUR RDV:", error); // <<< AJOUTÉ
+    toast.error("Erreur lors du chargement des rendez-vous");
+  }
+};
 
-  // Fonction pour récupérer tous les patients
-  const fetchAllPatients = async () => {
-    try {
-      const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
-        {withCredentials: true }
-      );
-      setPatients(response.data.patients); // Mettre à jour l'état des patients
-    } catch (error) {
-      toast.error("Erreur lors du chargement des patients");
-    }
-  };
+const fetchAllPatients = async () => {
+  console.log("CALENDAR: Requête tous les patients."); // <<< AJOUTÉ
+  try {
+    const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+      {withCredentials: true }
+    );
+    console.log("CALENDAR: Réponse tous les patients:", response.data.patients.length); // <<< AJOUTÉ
+    setPatients(response.data.patients);
+  } catch (error) {
+    console.error("CALENDAR ERREUR fetchAllPatients:", error.response?.data?.message || error.message); // <<< AJOUTÉ
+    console.error("CALENDAR DÉTAILS ERREUR PATIENTS:", error); // <<< AJOUTÉ
+    toast.error("Erreur lors du chargement des patients");
+  }
+};
+
+  
 
   // Fonction pour gérer le changement de date dans le calendrier
   const handleDateTimeChange = (newDate) => {
@@ -82,84 +98,79 @@ const AppointmentCalendar = () => {
 
   // Fonction pour programmer un nouveau rendez-vous
   const scheduleAppointment = async () => {
-    let patientIdToSchedule = selectedPatient; // Par défaut, c'est un patient existant
+  let patientIdToSchedule = selectedPatient; // Par défaut, c'est un patient existant
 
-    // Si l'option "Ajouter un nouveau patient" est sélectionnée (valeur spéciale, par ex. "new")
-    if (selectedPatient === "new") {
-        // 1. Validation des champs du nouveau patient
-        if (!newPatientFirstName || !newPatientLastName || !newPatientPhoneNumber) {
-            toast.error("Veuillez remplir le nom, prénom et numéro de téléphone du nouveau patient.");
-            return;
-        }
-        const phoneRegex = /^(05|06|07)\d{8}$/;
-        if (!phoneRegex.test(newPatientPhoneNumber)) {
-            toast.error("Le numéro de téléphone doit commencer par 05, 06 ou 07 et contenir 10 chiffres.");
-            return;
-        }
+  if (selectedPatient === "new") {
+      // ... (Validation des champs du nouveau patient : newPatientFirstName, etc.) ...
 
-        // 2. Créer le nouveau patient via l'API (similaire à addNewPatient)
-        try {
-            const newPatientData = new FormData();
-            newPatientData.append("firstName", newPatientFirstName);
-            newPatientData.append("lastName", newPatientLastName);
-            newPatientData.append("phoneNumber", newPatientPhoneNumber);
-            // Vous pouvez ajouter d'autres champs obligatoires si nécessaire ici, ou les laisser vides pour le backend.
-            // Par exemple, si 'email' est requis côté backend pour certains flux, même si optionnel pour l'inscription.
-            // Assurez-vous que le backend gère bien les champs manquants ou optionnels.
+      try {
+          // 2. Créer le nouveau patient via l'API (cette partie est déjà là)
+          const newPatientData = new FormData();
+          newPatientData.append("firstName", newPatientFirstName);
+          newPatientData.append("lastName", newPatientLastName);
+          newPatientData.append("phoneNumber", newPatientPhoneNumber);
 
-            const response = await axios.post(
-                "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
-                newPatientData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                    withCredentials: true,
-                }
-            );
-            patientIdToSchedule = response.data.patient._id; // Récupérez l'ID du nouveau patient
-            toast.success("Nouveau patient ajouté avec succès !");
+          const response = await axios.post(
+              "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
+              newPatientData,
+              {
+                  headers: { "Content-Type": "multipart/form-data" },
+                  withCredentials: true,
+              }
+          );
+          // <<< MODIFICATION CRUCIALE ICI : Mettre à jour patientIdToSchedule avec l'ID du nouveau patient
+          patientIdToSchedule = response.data.patient._id; // <-- C'EST CETTE LIGNE QUI FAIT LE LIEN
+          toast.success("Nouveau patient ajouté avec succès et rendez-vous en cours !"); // Message mis à jour
 
-            // Réinitialiser les champs du nouveau patient
-            setNewPatientFirstName("");
-            setNewPatientLastName("");
-            setNewPatientPhoneNumber("");
-            setSelectedPatient(""); // Réinitialiser le sélecteur
-            fetchAllPatients(); // Recharger la liste des patients pour inclure le nouveau
+          // Réinitialiser les champs du nouveau patient pour vider le formulaire
+          setNewPatientFirstName("");
+          setNewPatientLastName("");
+          setNewPatientPhoneNumber("");
+          setShowNewPatientFields(false); // Masquer les champs après l'ajout
+          setSelectedPatient(""); // Réinitialiser la sélection
 
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Erreur lors de l'ajout du nouveau patient.");
-            console.error(error);
-            return; // Arrêter la fonction si l'ajout du patient échoue
-        }
-    }
+          // REMARQUE : fetchAllPatients() est important pour que le nouveau patient apparaisse
+          // dans le sélecteur la prochaine fois, mais il ne bloque pas le flux ici.
+          fetchAllPatients();
 
-    // Si aucun patient n'est sélectionné après la logique ci-dessus
-    if (!patientIdToSchedule || patientIdToSchedule === "new") { // S'assurer qu'un ID valide est là
-        toast.error("Veuillez sélectionner ou ajouter un patient pour le rendez-vous.");
-        return;
-    }
+      } catch (error) {
+          toast.error(error.response?.data?.message || "Erreur lors de l'ajout du nouveau patient.");
+          console.error(error);
+          return; // Arrêter la fonction si l'ajout du patient échoue
+      }
+  }
 
-    // 3. Programmer le rendez-vous (logique existante, mais avec patientIdToSchedule)
-    try {
-        const [hours, minutes] = time.split(":");
-        const appointmentDate = new Date(date);
-        appointmentDate.setHours(hours);
-        appointmentDate.setMinutes(minutes);
+  // Si aucun patient n'est sélectionné OU si le nouvel ajout a échoué (patientIdToSchedule sera toujours "new")
+  if (!patientIdToSchedule || patientIdToSchedule === "new") {
+      toast.error("Veuillez sélectionner un patient ou corriger les informations du nouveau patient.");
+      return;
+  }
 
-        const response = await axios.put(
-            "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
-            { // Données de la requête
-                patientId: patientIdToSchedule, // Utilisez l'ID du patient existant ou nouveau
-                appointmentDate: appointmentDate.toISOString(),
-            },
-            { withCredentials: true } // Configuration de la requête
-        );
+  // 3. Programmer le rendez-vous (utilise maintenant l'ID du nouveau patient si applicable)
+  try {
+      const [hours, minutes] = time.split(":");
+      const appointmentDate = new Date(date);
+      appointmentDate.setHours(hours);
+      appointmentDate.setMinutes(minutes);
 
-        toast.success("Rendez-vous programmé !");
-        fetchAppointments(date); // Recharger les rendez-vous après la programmation
-    } catch (error) {
-        toast.error(error.response?.data?.message || "Erreur lors de la programmation.");
-    }
-  };
+      const response = await axios.put(
+          "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
+          {
+              patientId: patientIdToSchedule, // <<< UTILISE L'ID DU NOUVEAU PATIENT OU DE L'EXISTANT
+              appointmentDate: appointmentDate.toISOString(),
+          },
+          { withCredentials: true }
+      );
+
+      toast.success("Rendez-vous programmé avec succès !"); // Message mis à jour
+      fetchAppointments(date); // Recharger les rendez-vous pour la date actuelle
+      // REMARQUE : Pour que le Dashboard se rafraîchisse, il faudra un `Maps("/")` après ça.
+      // Si vous voulez une redirection, placez-la ici : navigate("/");
+  } catch (error) {
+      toast.error(error.response?.data?.message || "Erreur lors de la programmation du rendez-vous.");
+      console.error(error);
+  }
+};
 
   // Fonction pour marquer un patient comme "Vu"
   const handleMarkAsSeen = async (patientId) => {
