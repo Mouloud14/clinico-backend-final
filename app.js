@@ -31,10 +31,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.get("/test-auth-route", (req, res) => {
-    console.log("TEST APP.JS: Route /test-auth-route atteinte !");
-    return res.status(200).json({ success: true, message: "Route de test atteinte avec succès!" });
-});
+
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/patient", patientRouter);

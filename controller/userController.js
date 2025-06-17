@@ -95,10 +95,16 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
   }
 });
 // Conserver uniquement les fonctions utiles
-export const getUserDetails = async (req, res, next) => { // ATTENTION: async (req, res, next) et non catchAsyncErrors(async (...)
-    console.log("CONTROLLER: Début de getUserDetails. (Version test)"); // CE LOG EST LA CLÉ AUSSI
-    res.status(200).json({ success: true, user: req.user });
-    console.log("CONTROLLER: Fin de getUserDetails, réponse envoyée. (Version test)"); // CE LOG EST LA CLÉ AUSSI
+export const getUserDetails = async (req, res, next) => { // <-- TRÈS IMPORTANT : Devient juste 'async (req, res, next)'
+    console.log("CONTROLLER FINAL TEST: Début de getUserDetails - SANS CATCHASYNCERRORS."); // LOG CLÉ
+    console.log("CONTROLLER FINAL TEST: Utilisateur ID:", req.user?._id || "Non disponible"); // LOG CLÉ
+    if (!req.user) { // Ajout d'un contrôle de sécurité au cas où req.user ne serait pas là
+         console.error("CONTROLLER FINAL TEST: req.user est null ou undefined. Impossible de renvoyer les détails.");
+         return res.status(401).json({ success: false, message: "Utilisateur non authentifié pour cette route." });
+    }
+    return res.status(200).json({ success: true, user: req.user });
+    // Cette ligne ci-dessous ne sera pas exécutée car il y a un 'return' avant, mais on la laisse pour information
+    console.log("CONTROLLER FINAL TEST: Fin de getUserDetails, réponse 200 JSON envoyée."); // LOG CLÉ
 };
 
  export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
