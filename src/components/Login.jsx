@@ -14,41 +14,28 @@ const Login = () => {
 
   const navigateTo = useNavigate();
 
-// Dans Login.jsx
-const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await axios.post(
-      "https://clinico-backend-final.onrender.com/api/v1/user/login",
-      { email, password },
-      {
-        withCredentials: true,
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-
-    console.log("LOGIN FRONTEND LOG: Réponse Axios (succès):", response); // <<< AJOUTÉ
-    console.log("LOGIN FRONTEND LOG: Message du backend:", response.data.message); // <<< AJOUTÉ
-
-    toast.success(response.data.message);
-    setIsAuthenticated(true);
-    navigateTo("/");
-    console.log("LOGIN FRONTEND LOG: isAuthenticated set to TRUE, navigating to /"); // <<< AJOUTÉ
-    setEmail("");
-    setPassword("");
-
-  } catch (error) {
-    console.error("LOGIN FRONTEND LOG: Erreur Axios (échec):", error); // <<< AJOUTÉ
-    if (error.response && error.response.data && error.response.data.message) {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(
+       "https://clinico-backend-final.onrender.com/api/v1/user/login",
+        { email, password },
+        {
+          withCredentials: true,
+          credentials: "include", 
+          headers: { "Content-Type": "application/json" },
+        }
+      ).then((res) => {
+        toast.success(res.data.message);
+        setIsAuthenticated(true);
+        navigateTo("/");
+        setEmail("");
+        setPassword("");
+      });
+    } catch (error) {
       toast.error(error.response.data.message);
-      console.error("LOGIN FRONTEND LOG: Message erreur backend:", error.response.data.message); // <<< AJOUTÉ
-    } else {
-      toast.error("Erreur de connexion. Veuillez réessayer.");
     }
-    console.error("LOGIN FRONTEND LOG: Erreur complète:", error); // Log l'erreur complète pour le débogage
-  }
-};
+  };
 
   if (isAuthenticated) {
     return <Navigate to={"/"} />;
@@ -58,13 +45,13 @@ const handleLogin = async (e) => {
     <div className="login-container">
       <div className="login-left-panel">
         <div className="login-brand">
-          <img src="/en blanc.png" alt="HK Clinique Logo" className="login-logo" />
-         <div className="login-welcome">
-  <h1 className="login-title">Bienvenue sur Medoclic</h1> {/* <<< MODIFIEZ CE TEXTE */}
-  <p className="login-subtitle">Votre portail sécurisé de gestion de clinique</p> {/* <<< MODIFIEZ CE TEXTE */}
-</div>
+          <img src="/logo.png" alt="HK Clinique Logo" className="login-logo" />
+          <div className="login-welcome">
+            <h1 className="login-title">Bienvenue sur Medoclic</h1>
+            <p className="login-subtitle">Votre portail sécurisé de gestion de clinique</p>
+          </div>
         </div>
-       
+        
         <div className="login-decorative">
           <div className="login-circle circle-1"></div>
           <div className="login-circle circle-2"></div>
@@ -74,13 +61,13 @@ const handleLogin = async (e) => {
 
       <div className="login-right-panel">
         <form className="login-form" onSubmit={handleLogin}>
-          <h2 className="form-title">Connexion Administrateur</h2> {/* <<< MODIFIEZ CE TEXTE */}
-  <p className="form-subtitle">Accédez à vos ressources cliniques sécurisées</p> {/* <<< MODIFIEZ CE TEXTE */}
-         
+          <h2 className="form-title">Connexion Administrateur</h2>
+          <p className="form-subtitle">Accédez à vos ressources cliniques sécuriséess</p>
+          
           <div className="form-group">
             <input
               type="email"
-              placeholder="Adresse mail"
+              placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="form-input"
@@ -95,7 +82,7 @@ const handleLogin = async (e) => {
           <div className="form-group">
             <input
               type="password"
-              placeholder="Mot de passe"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="form-input"
@@ -107,9 +94,9 @@ const handleLogin = async (e) => {
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
-         
+          
           <button type="submit" className="login-button">
-            <span className="button-text">Se connecter</span>
+            <span className="button-text">Se connecter </span>
             <svg className="button-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14"/>
               <path d="M12 5l7 7-7 7"/>
@@ -128,4 +115,4 @@ const handleLogin = async (e) => {
   );
 };
 
-export default Login; 
+export default Login;
