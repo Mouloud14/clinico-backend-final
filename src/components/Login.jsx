@@ -57,7 +57,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-left-panel">
         <div className="login-brand">
-          <img src="/logo.png" alt="HK Clinique Logo" className="login-logo" />
+          <img src="/en blanc.png" alt="medoclic logo" className="login-logo" />
           <div className="login-welcome">
             <h1 className="login-title">Bienvenue sur Medoclic</h1>
             <p className="login-subtitle">Votre portail sécurisé de gestion de clinique</p>
