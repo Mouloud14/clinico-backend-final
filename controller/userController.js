@@ -95,11 +95,11 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
   }
 });
 // Conserver uniquement les fonctions utiles
-export const getUserDetails = async (req, res, next) => { // ATTENTION: async (req, res, next) et non catchAsyncErrors(async (...)
-    console.log("CONTROLLER: Début de getUserDetails. (Version test)"); // CE LOG EST LA CLÉ AUSSI
+export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
+    console.log("CONTROLLER: Début de getUserDetails."); // Ajoute cette ligne
     res.status(200).json({ success: true, user: req.user });
-    console.log("CONTROLLER: Fin de getUserDetails, réponse envoyée. (Version test)"); // CE LOG EST LA CLÉ AUSSI
-};
+    console.log("CONTROLLER: Fin de getUserDetails, réponse envoyée."); // Ajoute cette ligne
+});
 
  export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
    res.status(200)
