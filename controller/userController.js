@@ -38,26 +38,32 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
   const { firstName, lastName, email, cabinetAddress, cabinetPhone, ordreNumber, specialite, password } = req.body;
 
-  console.log("BACKEND LOG: Début addNewAdmin. Données reçues:", req.body.email, req.body.ordreNumber); // <<< AJOUTÉ
+  console.log("BACKEND LOG (addNewAdmin): Données reçues:", req.body); // Log toutes les données
 
   const requiredFields = ['firstName', 'lastName', 'email', 'cabinetAddress', 'cabinetPhone', 'ordreNumber', 'specialite', 'password'];
   const missingFields = requiredFields.filter(field => !req.body[field]);
 
   if (missingFields.length > 0) {
-    console.error("BACKEND LOG: Champs manquants:", missingFields.join(', '));
+    console.error("BACKEND LOG (addNewAdmin): ERREUR - Champs manquants:", missingFields.join(', '));
     return next(new ErrorHandler(`Champs manquants : ${missingFields.join(', ')}`, 400));
   }
 
-  console.log("BACKEND LOG: Vérification email existant..."); // <<< AJOUTÉ
-  const existingAdmin = await User.findOne({ email });
-  if (existingAdmin) {
-    console.error("BACKEND LOG: Email déjà utilisé:", email);
+  console.log("BACKEND LOG (addNewAdmin): Vérification email et ordreNumber uniques...");
+  const existingEmail = await User.findOne({ email });
+  if (existingEmail) {
+    console.error("BACKEND LOG (addNewAdmin): ERREUR - Email déjà utilisé:", email);
     return next(new ErrorHandler("Cet email est déjà utilisé", 400));
   }
+  const existingOrder = await User.findOne({ ordreNumber }); // Vérifiez aussi ordreNumber si unique
+  if (existingOrder) {
+    console.error("BACKEND LOG (addNewAdmin): ERREUR - Numéro d'ordre déjà utilisé:", ordreNumber);
+    return next(new ErrorHandler("Ce numéro d'ordre est déjà utilisé", 400));
+  }
 
-  console.log("BACKEND LOG: Création de l'utilisateur..."); // <<< AJOUTÉ
+
   try {
-      const admin = await User.create({ // <<< C'EST ICI QUE L'ERREUR PEUT SE PRODUIRE
+      console.log("BACKEND LOG (addNewAdmin): Tentative de création de l'utilisateur...");
+      const admin = await User.create({ // <<< C'EST ICI OU L'ERREUR PEUT SE PRODUIRE
         firstName,
         lastName,
         email,
@@ -68,7 +74,7 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
         password,
         role: "Admin"
       });
-      console.log("BACKEND LOG: Utilisateur créé avec succès:", admin.email); // <<< AJOUTÉ
+      console.log("BACKEND LOG (addNewAdmin): Utilisateur créé avec succès:", admin.email);
 
       res.status(201).json({
         success: true,
@@ -76,16 +82,18 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
         admin
       });
   } catch (error) {
+      console.error("BACKEND LOG (addNewAdmin): ERREUR DANS LE CATCH. Nom de l'erreur:", error.name);
+      console.error("BACKEND LOG (addNewAdmin): Message de l'erreur:", error.message);
+      console.error("BACKEND LOG (addNewAdmin): Erreur complète:", error);
+
       if (error.name === 'ValidationError') {
           const errors = Object.keys(error.errors).map(key => error.errors[key].message);
-          console.error("BACKEND LOG: Erreur de validation du schéma:", errors.join(', '));
           return next(new ErrorHandler(`Erreur de validation: ${errors.join(', ')}`, 400));
       }
-      console.error("BACKEND LOG: Erreur INATTENDUE lors de l'ajout d'admin:", error);
+      // Pour toute autre erreur inattendue (y compris les problèmes de DB si non validés)
       return next(new ErrorHandler("Erreur interne du serveur", 500));
   }
 });
-
 // Conserver uniquement les fonctions utiles
 export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({ success: true, user: req.user });

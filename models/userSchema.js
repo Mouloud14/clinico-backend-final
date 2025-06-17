@@ -58,9 +58,20 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
+    console.log("BACKEND LOG (userSchema): Mot de passe non modifié, passer le hachage.");
     next();
+    return; // Assurez-vous de return ici
   }
-  this.password = await bcrypt.hash(this.password, 10);
+  try {
+    console.log("BACKEND LOG (userSchema): Début hachage mot de passe...");
+    this.password = await bcrypt.hash(this.password, 10);
+    console.log("BACKEND LOG (userSchema): Mot de passe haché (début):", this.password.substring(0, 10), "..."); // Log juste le début
+    next();
+  } catch (hashError) {
+    console.error("BACKEND LOG (userSchema): ERREUR lors du hachage du mot de passe:", hashError.message);
+    console.error("BACKEND LOG (userSchema): Détails erreur hachage:", hashError);
+    next(new Error("Erreur interne lors du traitement du mot de passe")); // Passer l'erreur au middleware suivant
+  }
 });
 
 userSchema.methods.comparePassword = async function (enteredPassword) {
