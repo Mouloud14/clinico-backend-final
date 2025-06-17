@@ -112,78 +112,49 @@ export const getAllPatients = async (req, res) => {
   }
 };
 
-// backend/controller/Patient.controller.js
-
-// ... (vos autres importations et fonctions au-dessus) ...
-
 export const getPatientsByDate = async (req, res) => {
-  console.log("----- BACKEND: getPatientsByDate FONCTION APPELÉE -----");
   try {
-    const { date } = req.query; // Date reçue du frontend (doit être "YYYY-MM-DD")
+    const { date } = req.query; // date est une string ISO (ex: "2025-06-12T23:00:00.000Z")
 
-    console.log("BACKEND: Date reçue du frontend (query param):", date);
+    console.log("--- Début getPatientsByDate ---"); // <<< NOUVEAU LOG
+    console.log("Date reçue du frontend:", date);    // <<< NOUVEAU LOG
 
-    // Crée un objet Date à partir de "YYYY-MM-DD" (interprété en heure locale)
-    // Par exemple, "2025-06-16" deviendra "Mon Jun 16 2025 00:00:00 GMT+0100 (heure locale)"
-    const localDate = new Date(date);
-    console.log("BACKEND: localDate (interprété localement):", localDate.toString());
+    const queryDate = new Date(date);
 
-    // Construction des bornes UTC précises pour cette journée.
-    // Date.UTC() construit une date directement en UTC sans tenir compte du fuseau horaire local.
-    const startOfDayUTC = new Date(Date.UTC(
-        localDate.getFullYear(),
-        localDate.getMonth(),
-        localDate.getDate(), // Ceci prend le jour LOCAL de 'localDate'
-        0, 0, 0, 0 // Minuit UTC
+    const startOfDay = new Date(Date.UTC(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate(),
+        0, 0, 0, 0
     ));
 
-    // Le début du jour suivant en UTC
-    const endOfDayUTC = new Date(Date.UTC(
-        localDate.getFullYear(),
-        localDate.getMonth(),
-        localDate.getDate() + 1, // Le jour LOCAL suivant
-        0, 0, 0, 0 // Minuit UTC du jour suivant
+    const endOfDay = new Date(Date.UTC(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate() + 1,
+        0, 0, 0, 0
     ));
 
-    console.log("BACKEND: Période de recherche DB (startOfDay UTC):", startOfDayUTC.toISOString());
-    console.log("BACKEND: Période de recherche DB (endOfDay UTC):", endOfDayUTC.toISOString());
-
-    const doctorId = req.user._id; // Récupérer l'ID du médecin connecté (doit être authentifié)
-
-    // Log de la tentative de recherche DB
-    console.log("BACKEND: Tentative de recherche DB avec doctorId:", doctorId);
-    if (!req.user || !req.user._id) {
-        console.error("BACKEND: ERREUR - ID Docteur manquant dans req.user pour getPatientsByDate!");
-        return res.status(401).json({ message: "Authentification requise pour cette opération." });
-    }
+    console.log("Période de recherche UTC (début):", startOfDay.toISOString()); // <<< NOUVEAU LOG
+    console.log("Période de recherche UTC (fin):", endOfDay.toISOString());     // <<< NOUVEAU LOG
 
     const patients = await Patient.find({
-      doctor: doctorId, // Filtrer par le médecin connecté
-      'appointments.date': { // Rechercher dans les rendez-vous
-        $gte: startOfDayUTC, // Date de rendez-vous >= début du jour UTC
-        $lt: endOfDayUTC     // Date de rendez-vous < début du jour UTC suivant
+      doctor: req.user._id, // Assurez-vous que req.user._id est défini (si 401, ce n'est pas le cas)
+      'appointments.date': {
+        $gte: startOfDay,
+        $lt: endOfDay
       }
     });
 
-    console.log("BACKEND: Nombre de patients trouvés par getPatientsByDate:", patients.length);
-    if (patients.length > 0) {
-        patients.forEach(p => {
-            console.log(`BACKEND: Patient "${p.firstName} ${p.lastName}" trouvé avec RDV:`, p.appointments.map(a => a.date.toISOString()));
-        });
-    } else {
-        console.log("BACKEND: Aucun patient trouvé pour cette période.");
-    }
-    console.log("--- Fin getPatientsByDate ---");
+    console.log("Patients trouvés par getPatientsByDate:", patients.length); // <<< NOUVEAU LOG
+    console.log("--- Fin getPatientsByDate ---");     // <<< NOUVEAU LOG
 
     res.status(200).json({ patients });
   } catch (error) {
-    console.error("BACKEND ERREUR générale dans getPatientsByDate:", error.message);
-    console.error("BACKEND DÉTAILS DE L'ERREUR complète:", error);
+    console.error("Erreur dans getPatientsByDate:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 export const getPatientById = async (req, res) => {
   try {
