@@ -14,29 +14,41 @@ const Login = () => {
 
   const navigateTo = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(
-        "http://localhost:4000/api/v1/user/login",
-        { email, password },
-        {
-          withCredentials: true,
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      ).then((res) => {
-        toast.success(res.data.message);
-        setIsAuthenticated(true);
-        navigateTo("/");
-        console.log("LOGIN LOG: Redirection vers le tableau de bord initiée.");
-        setEmail("");
-        setPassword("");
-      });
-    } catch (error) {
+// Dans Login.jsx
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post(
+      "http://localhost:4000/api/v1/user/login", // L'URL de votre backend local
+      { email, password },
+      {
+        withCredentials: true,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    console.log("LOGIN FRONTEND LOG: Réponse Axios (succès):", response); // <<< AJOUTÉ
+    console.log("LOGIN FRONTEND LOG: Message du backend:", response.data.message); // <<< AJOUTÉ
+
+    toast.success(response.data.message);
+    setIsAuthenticated(true);
+    navigateTo("/");
+    console.log("LOGIN FRONTEND LOG: isAuthenticated set to TRUE, navigating to /"); // <<< AJOUTÉ
+    setEmail("");
+    setPassword("");
+
+  } catch (error) {
+    console.error("LOGIN FRONTEND LOG: Erreur Axios (échec):", error); // <<< AJOUTÉ
+    if (error.response && error.response.data && error.response.data.message) {
       toast.error(error.response.data.message);
+      console.error("LOGIN FRONTEND LOG: Message erreur backend:", error.response.data.message); // <<< AJOUTÉ
+    } else {
+      toast.error("Erreur de connexion. Veuillez réessayer.");
     }
-  };
+    console.error("LOGIN FRONTEND LOG: Erreur complète:", error); // Log l'erreur complète pour le débogage
+  }
+};
 
   if (isAuthenticated) {
     return <Navigate to={"/"} />;
