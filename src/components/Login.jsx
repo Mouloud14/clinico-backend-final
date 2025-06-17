@@ -4,36 +4,48 @@ import { toast } from "react-toastify";
 import { Context } from "../main";
 import axios from "axios";
 
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
   const { isAuthenticated, setIsAuthenticated } = useContext(Context);
-
   const navigateTo = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-       "https://clinico-backend-final.onrender.com/api/v1/user/login",
+      console.log("LOGIN FRONTEND LOG: Tentative de connexion avec email:", email);
+      
+      const response = await axios.post(
+        "https://clinico-backend-final.onrender.com/api/v1/user/login",
         { email, password },
         {
           withCredentials: true,
-          credentials: "include", 
           headers: { "Content-Type": "application/json" },
         }
-      ).then((res) => {
-        toast.success(res.data.message);
-        setIsAuthenticated(true);
+      );
+
+      console.log("LOGIN FRONTEND LOG: Réponse Axios (succès):", response.data);
+      console.log("LOGIN FRONTEND LOG: Message du backend:", response.data.message);
+      
+      toast.success(response.data.message);
+      setIsAuthenticated(true);
+      
+      console.log("LOGIN FRONTEND LOG: isAuthenticated set to TRUE, navigating to /");
+      
+      // Petit délai pour s'assurer que le cookie est bien défini
+      setTimeout(() => {
         navigateTo("/");
-        setEmail("");
-        setPassword("");
-      });
+      }, 100);
+      
+      setEmail("");
+      setPassword("");
+      
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.log("LOGIN FRONTEND LOG: Erreur lors de la connexion:", error);
+      console.log("LOGIN FRONTEND LOG: Réponse d'erreur:", error.response?.data);
+      
+      toast.error(error.response?.data?.message || "Erreur de connexion");
     }
   };
 
@@ -62,7 +74,7 @@ const Login = () => {
       <div className="login-right-panel">
         <form className="login-form" onSubmit={handleLogin}>
           <h2 className="form-title">Connexion Administrateur</h2>
-          <p className="form-subtitle">Accédez à vos ressources cliniques sécuriséess</p>
+          <p className="form-subtitle">Accédez à vos ressources cliniques sécurisées</p>
           
           <div className="form-group">
             <input
@@ -96,7 +108,7 @@ const Login = () => {
           </div>
           
           <button type="submit" className="login-button">
-            <span className="button-text">Se connecter </span>
+            <span className="button-text">Se connecter</span>
             <svg className="button-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14"/>
               <path d="M12 5l7 7-7 7"/>
