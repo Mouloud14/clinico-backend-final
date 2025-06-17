@@ -1,6 +1,10 @@
 // Dans backend/router/userRouter.js
 
-// ... (vos autres imports) ...
+import express from "express";
+import { addNewAdmin, getUserDetails, login, logoutAdmin, changePassword } from "../controller/userController.js";
+import { isAdminAuthenticated } from "../middlewares/auth.js";
+// Si tu as importé catchAsyncErrors ici, tu peux le laisser ou le retirer pour ce test.
+// import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js"; // Décommenter si non utilisé pour le test
 
 const router = express.Router();
 
