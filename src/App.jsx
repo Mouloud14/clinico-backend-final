@@ -22,25 +22,24 @@ import "./App.css";
 axios.defaults.withCredentials = true;
 
 const App = () => {
-  const { isAuthenticated, setIsAuthenticated, admin, setAdmin } =
-    useContext(Context);
+  const { isAuthenticated, setIsAuthenticated, admin, setAdmin } = useContext(Context);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        // C'EST CETTE LIGNE QUI ÉTAIT FAUSSE DANS LE CODE DÉPLOYÉ !
         const response = await axios.get(
-          "https://clinico-backend-final.onrender.com",
+          "https://clinico-backend-final.onrender.com/api/v1/user/admin/me", // <-- CORRIGE L'URL COMME CECI !!!
           { withCredentials: true }
         );
+
         setIsAuthenticated(true);
         setAdmin(response.data.user);
+        console.log("APP.JS LOG: Utilisateur fetché avec succès:", response.data.user.email); // Ce log devrait maintenant apparaître
       } catch (error) {
         setIsAuthenticated(false);
         setAdmin({});
-        // Si l'utilisateur n'est pas authentifié et qu'il n'est pas sur la page de login, redirigez-le
-        // if (window.location.pathname !== "/login") {
-        //   window.location.href = "/login"; // Redirige de force
-        // }
+        console.error("APP.JS ERROR: Échec du fetch user. Message d'erreur:", error.response?.data?.message || error.message); // Ce log devrait aussi apparaître en cas d'échec
       }
     };
     fetchUser();
