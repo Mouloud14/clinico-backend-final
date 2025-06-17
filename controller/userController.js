@@ -96,7 +96,10 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
 });
 // Conserver uniquement les fonctions utiles
 export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
+  console.log("BACKEND LOG: Début de getUserDetails."); // <-- AJOUTE CETTE LIGNE
+  console.log("BACKEND LOG: Utilisateur authentifié ID:", req.user._id); // <-- AJOUTE CETTE LIGNE
   res.status(200).json({ success: true, user: req.user });
+  console.log("BACKEND LOG: Fin de getUserDetails, réponse 200 JSON envoyée."); // <-- AJOUTE CETTE LIGNE
 });
 
  export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
