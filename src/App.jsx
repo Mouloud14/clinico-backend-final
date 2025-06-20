@@ -50,7 +50,7 @@ const App = () => {
         console.log("APP LOG: Admin state UPDATED in context to:", response.data.user); // Log l'objet après setAdmin
       } catch (error) {
         setIsAuthenticated(false);
-        setAdmin(null);
+        setAdmin({});
         console.log("APP LOG: Admin state RESET in context.");
         // --- LOG D'ERREUR ---
         console.error("APP.JS ERROR: Échec du fetch user. Message d'erreur:", error.response?.data?.message || error.message);
