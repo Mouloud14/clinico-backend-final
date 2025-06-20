@@ -518,6 +518,76 @@ export const updatePatientInfo = async (req, res) => {
     }
 
     // Mettre à jour les données
+    // Fonction updatePatientInfo modifiée pour gérer le numéro de patient
+export const updatePatientInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Trouver le patient
+    const patient = await Patient.findOne({
+      _id: id,
+      doctor: req.user._id
+    });
+    
+    if (!patient) {
+      return res.status(404).json({ message: "Patient non trouvé" });
+    }
+
+    // Vérifier si le numéro de patient existe déjà pour un autre patient
+    if (updateData.patientNumber && updateData.patientNumber !== patient.patientNumber) {
+      const existingPatientNumber = await Patient.findOne({
+        patientNumber: updateData.patientNumber,
+        doctor: req.user._id,
+        _id: { $ne: id }
+      });
+      if (existingPatientNumber) {
+        return res.status(400).json({ message: "Ce numéro de patient est déjà utilisé." });
+      }
+    }
+
+    // Vérifier si l'email existe déjà pour un autre patient
+    if (updateData.email && updateData.email !== patient.email) {
+      if (updateData.email.trim() !== "") {
+        const existingEmail = await Patient.findOne({
+          email: updateData.email.toLowerCase(),
+          doctor: req.user._id,
+          _id: { $ne: id }
+        });
+        if (existingEmail) {
+          return res.status(400).json({ message: "Email déjà utilisé par un autre patient." });
+        }
+      }
+    }
+
+    // Gestion des fichiers médicaux
+    const medicalFiles = [];
+    if (req.files) {
+      const files = req.files.filter(file => file.fieldname === 'medicalFiles');
+      for (const file of files) {
+        const fileBuffer = file.buffer;
+        const base64File = fileBuffer.toString("base64");
+        const dataURI = `data:${file.mimetype};base64,${base64File}`;
+        medicalFiles.push({ 
+          url: dataURI, 
+          addedDate: new Date() 
+        });
+      }
+    }
+
+    // Gestion de l'image de profil
+    let profileImage = patient.profileImage;
+    const profileImageFile = req.files?.find(file => file.fieldname === 'profileImage');
+    if (profileImageFile) {
+      const base64Image = profileImageFile.buffer.toString("base64");
+      const dataURI = `data:${profileImageFile.mimetype};base64,${base64Image}`;
+      profileImage = { 
+        url: dataURI, 
+        addedDate: new Date() 
+      };
+    }
+
+    // Mettre à jour les données
     const updatedPatient = await Patient.findByIdAndUpdate(
       id,
       {
