@@ -16,14 +16,14 @@ const Login = () => {
     try {
       console.log("LOGIN FRONTEND LOG: Tentative de connexion avec email:", email);
       
-      const response = await axios.post(
-        "https://clinico-backend-final.onrender.com/api/v1/user/login",
-        { email, password },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    const response = await axios.post(
+  `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/user/login`,
+  { email, password },
+  {
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
+  }
+);
 
       console.log("LOGIN FRONTEND LOG: Réponse Axios (succès):", response.data);
       console.log("LOGIN FRONTEND LOG: Message du backend:", response.data.message);
