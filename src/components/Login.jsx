@@ -30,7 +30,7 @@ const Login = () => {
       
       toast.success(response.data.message);
       setIsAuthenticated(true);
-      setAdmin(response.data.user);
+      
       console.log("LOGIN FRONTEND LOG: isAuthenticated set to TRUE, navigating to /");
       
       // Petit délai pour s'assurer que le cookie est bien défini
