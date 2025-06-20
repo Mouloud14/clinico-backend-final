@@ -14,7 +14,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const { isAuthenticated, admin } = useContext(Context);
-  console.log("DASHBOARD LOG: Component rendered. isAuthenticated:", isAuthenticated, "Admin data:", admin); // <<< AJOUTÉ
+  console.log("DASHBOARD LOG: Component rendered. isAuthenticated:", isAuthenticated, "Admin data received:", admin); // <<< AJOUTÉ
+  console.log("DASHBOARD LOG: Admin firstName:", admin?.firstName, "lastName:", admin?.lastName); // <<< AJOUTÉ
 
  if (!isAuthenticated) {
     console.log("DASHBOARD LOG: Not authenticated, redirecting to /login.");
@@ -219,7 +220,7 @@ const fetchData = async () => {
   };
 
   if (!isAuthenticated) {
-    console.log("DASHBOARD LOG: Non authentifié, redirection vers /login.");
+    console.log("DASHBOARD LOG: Not authenticated, redirecting to /login.");
     return <Navigate to={"/login"} />;
   }
 
