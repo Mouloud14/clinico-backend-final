@@ -1,5 +1,5 @@
 import 'dotenv/config'; 
-
+console.log("APP.JS LOG: Application démarrant...");
 import express from "express";
 import { dbConnection } from "./database/dbConnection.js";
 
@@ -17,13 +17,15 @@ console.log("CORS Origin configured as:", process.env.DASHBOARD_URL);
 
 app.use(
   cors({
-    origin: "https://clinico-dashboard.vercel.app",
+    origin: [
+      "https://clinico-dashboard.vercel.app", // L'URL de production principale de votre frontend Vercel
+      "http://localhost:5173"                  // <<< CECI DOIT ABSOLUMENT ÊTRE LÀ ET CORRECT
+    ],
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
-
 // ... le reste du code reste inchangé
 
 app.use(cookieParser());

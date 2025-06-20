@@ -5,28 +5,39 @@ import { generateToken } from "../utils/jwtToken.js";
 
 
 export const login = catchAsyncErrors(async (req, res, next) => {
+  console.log("BACKEND LOGIN LOG: --- DÉBUT TENTATIVE DE CONNEXION ---"); // <<< NOUVEAU LOG
   const { email, password } = req.body;
 
+  console.log("BACKEND LOGIN LOG: Email reçu:", email); // <<< NOUVEAU LOG
+  console.log("BACKEND LOGIN LOG: Mot de passe reçu (masqué):", password ? "[Reçu]" : "[Manquant]"); // <<< NOUVEAU LOG
+
   if (!email || !password) {
+    console.error("BACKEND LOGIN LOG: ERREUR - Email ou mot de passe manquant dans la requête."); // <<< NOUVEAU LOG
     return next(new ErrorHandler("Veuillez remplir tous les champs", 400));
   }
 
+  console.log("BACKEND LOGIN LOG: Recherche utilisateur par email:", email); // <<< NOUVEAU LOG
   const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
 
-  console.log(user);
-  
   if (!user) {
-    
+    console.error("BACKEND LOGIN LOG: ERREUR - Utilisateur non trouvé pour l'email:", email); // <<< NOUVEAU LOG
     return next(new ErrorHandler("Identifiants incorrects", 401));
   }
+  console.log("BACKEND LOGIN LOG: Utilisateur trouvé dans DB:", user.email, "ID:", user._id); // <<< NOUVEAU LOG
 
+  console.log("BACKEND LOGIN LOG: Début comparaison mot de passe..."); // <<< NOUVEAU LOG
   const isPasswordMatch = await user.comparePassword(password);
-  console.log("Comparaison du mot de passe :", isPasswordMatch);
+  console.log("BACKEND LOGIN LOG: Résultat comparaison mot de passe:", isPasswordMatch ? "Correspond" : "Ne Correspond PAS"); // <<< NOUVEAU LOG
+
   if (!isPasswordMatch) {
+    console.error("BACKEND LOGIN LOG: ERREUR - Mot de passe incorrect pour l'utilisateur:", user.email); // <<< NOUVEAU LOG
     return next(new ErrorHandler("Identifiants incorrects", 401));
   }
+  console.log("BACKEND LOGIN LOG: Mot de passe vérifié, connexion réussie."); // <<< NOUVEAU LOG
 
   generateToken(user, "Connexion réussie!", 200, res);
+  console.log("BACKEND LOGIN LOG: Token généré et cookie envoyé."); // <<< NOUVEAU LOG
+  console.log("BACKEND LOGIN LOG: --- FIN TENTATIVE DE CONNEXION ---"); // <<< NOUVEAU LOG
 });
 
 export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
@@ -65,7 +76,13 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
 
 // Conserver uniquement les fonctions utiles
 export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
-  res.status(200).json({ success: true, user: req.user });
+  const user = req.user; // L'utilisateur est attaché à req.user par le middleware d'authentification
+  console.log("BACKEND LOG (getUserDetails): User object retrieved from DB:", user); // <<< AJOUTÉ
+
+  res.status(200).json({
+    success: true,
+    user, // Ceci devrait inclure firstName et lastName
+  });
 });
 
  export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
