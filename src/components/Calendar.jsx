@@ -313,6 +313,7 @@ const fetchAllPatients = async () => {
           value={date}
           locale="fr-FR"
           className="react-calendar"
+          calendarType="gregory"
         />
       </div>
 
