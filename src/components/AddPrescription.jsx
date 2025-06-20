@@ -239,14 +239,14 @@ const AddPrescription = () => {
                     placeholder="Nom du médicament"
                     value={med.name}
                     onChange={(e) => handleMedicationChange(index, 'name', e.target.value)}
-                    required
+                    
                   />
                   <input
                     type="text"
                     placeholder="Dosage"
                     value={med.dosage}
                     onChange={(e) => handleMedicationChange(index, 'dosage', e.target.value)}
-                    required
+                    
                   />
                   
                   
@@ -257,7 +257,7 @@ const AddPrescription = () => {
                                value={med.boxes}
                                onChange={(e) => handleMedicationChange(index, 'boxes', e.target.value)}
                                min="1"
-                               required
+                               
                         />
 
 <textarea
