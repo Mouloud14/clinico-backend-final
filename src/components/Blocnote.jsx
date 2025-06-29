@@ -278,7 +278,7 @@ const Blocnote = () => {
             </div>
 
             <div className="form-group note-input-group">
-              <label>Note médicale :</label>
+              <label>Examen clinique du jour :</label>
               <div className="note-input-container">
                 <textarea
                   ref={textareaRef}
