@@ -5,7 +5,7 @@ import App from "./App"; // Votre composant App principal
 
 
 export const Context = createContext({
-  isAuthenticated: null,
+  isAuthenticated: undefined,
   setIsAuthenticated: () => {},
   admin: {},
   setAdmin: () => {},
@@ -14,7 +14,7 @@ export const Context = createContext({
 });
 
 const AppWrapper = () => { // C'est généralement un wrapper autour de votre App dans main.jsx
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(undefined);
   const [admin, setAdmin] = useState({});
   const [shouldRefreshDashboard, setShouldRefreshDashboard] = useState(false); // <<< DÉCLARER LE NOUVEL ÉTAT
 

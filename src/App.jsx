@@ -25,6 +25,7 @@ axios.defaults.withCredentials = true;
 
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin } = useContext(Context);
+  console.log("APP LOG (Render - Début): Path:", window.location.pathname, "isAuthenticated =", isAuthenticated, "Admin =", admin);
   console.log("APP LOG: Current isAuthenticated state on render:", isAuthenticated);
   console.log("APP LOG: Admin state (on render, before fetch):", admin); // Log avant la requête
   console.log("APP LOG (Initial Render): isAuthenticated =", isAuthenticated, "Admin =", admin);
@@ -39,6 +40,7 @@ const App = () => {
       // ... (votre fonction fetchUser) ...
       const fetchUser = async () => {
           console.log("APP LOG (fetchUser): Appel à /admin/me.");
+          console.log("APP LOG (fetchUser): Appel à /admin/me. isAuth avant requete:", isAuthenticated);
           try {
               const response = await axios.get(
                   `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/user/admin/me`,
@@ -57,7 +59,7 @@ const App = () => {
       };
 
       // Condition de déclenchement :
-      if (isAuthenticated === null) { // Au tout premier chargement
+      if (isAuthenticated === undefined) { // Au tout premier chargement
           console.log("APP LOG (useEffect): isAuthenticated est null, déclenchement de fetchUser.");
           fetchUser();
       } else if (isAuthenticated === false && window.location.pathname !== '/login') {
@@ -72,6 +74,10 @@ const App = () => {
           console.log("APP LOG (useEffect): État d'authentification stable. Pas de fetchUser.");
       }
   }, [isAuthenticated, admin]); // Dépendances
+  if (isAuthenticated === undefined) {
+      console.log("APP LOG (Rendu): Authentification en cours de chargement...");
+      return <div>Chargement de l'authentification...</div>;
+  }
 
   // --- Vérifiez la logique de rendu des Routes ---
   return (
