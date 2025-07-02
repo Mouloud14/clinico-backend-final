@@ -18,7 +18,7 @@ console.log("CORS Origin configured as:", process.env.DASHBOARD_URL);
 app.use(
   cors({
     origin: [
-      "https://medoclic-frontend.vercel.app/", // L'URL de production principale de votre frontend Vercel
+      "https://medoclic-frontend.vercel.app", // L'URL de production principale de votre frontend Vercel
       "http://localhost:5173"                  // <<< CECI DOIT ABSOLUMENT ÊTRE LÀ ET CORRECT
     ],
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
