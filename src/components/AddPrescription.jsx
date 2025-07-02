@@ -23,7 +23,7 @@ const AddPrescription = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients`,
           {withCredentials: true}
         );
         setPatients(response.data.patients);
@@ -67,13 +67,13 @@ const AddPrescription = () => {
     };
 
     try {
-      const response = await axios.put(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/${selectedPatient}/add-prescription`,
-        prescriptionData,
-        {
-          withCredentials: true // Ajouté ici
-        }
-      );
+  const response = await axios.put(
+    `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${selectedPatient}/add-prescription`, // <<< CORRIGEZ EXACTEMENT COMME CECI
+    prescriptionData,
+    {
+      withCredentials: true // Ajouté ici
+    }
+  );
 
       if (response.status === 200) {
         alert("Ordonnance enregistrée avec succès");

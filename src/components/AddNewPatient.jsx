@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Context } from "../main";
 import "../App.css";
 
 const AddNewPatient = () => {
   const { id } = useParams(); // Pour savoir si on est en mode modification
   const navigate = useNavigate();
+  const { setShouldRefreshDashboard } = useContext(Context);
   const isEditing = Boolean(id);
 
   const [formData, setFormData] = useState({
@@ -34,7 +36,7 @@ const AddNewPatient = () => {
       const fetchPatientData = async () => {
         try {
           const response = await axios.get(
-            `https://clinico-backend-final.onrender.com/api/v1/patient/${id}`,
+            `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${id}`,
             { withCredentials: true }
           );
           const patient = response.data;
@@ -115,7 +117,7 @@ const AddNewPatient = () => {
       if (isEditing) {
         // Mode modification
        response = await axios.put(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/update-info`, 
+  `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${id}/update-info`, 
   data, 
   {
     headers: { "Content-Type": "multipart/form-data" },
@@ -123,11 +125,12 @@ const AddNewPatient = () => {
   }
 );
         toast.success("Informations du patient mises à jour avec succès");
+        setShouldRefreshDashboard(true);
         navigate(`/dossier-patient/${id}`); // Retourner au dossier du patient
       } else {
         // Mode création
         response = await axios.post(
-          "https://clinico-backend-final.onrender.com/api/v1/patient/addnew", 
+          `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/addnew`, 
           data, 
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -135,6 +138,8 @@ const AddNewPatient = () => {
           }
         );
         toast.success("Patient ajouté avec succès");
+        setShouldRefreshDashboard(true);
+         navigate('/patients'); 
         // Réinitialiser le formulaire
         setFormData({
           patientNumber: "",

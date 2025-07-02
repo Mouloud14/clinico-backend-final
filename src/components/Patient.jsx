@@ -12,14 +12,16 @@ const Patient = () => {
     const fetchPatients = async () => {
       try {
         const response = await axios.get(
-          "https://clinico-backend-final.onrender.com/api/v1/patient/patients", 
+          `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients`, 
           { 
             withCredentials: true // Ajoutez cette ligne
           }
         );
         setPatients(response.data.patients);
+        console.log("PATIENT PAGE LOG: Réponse réussie, patients reçus:", response.data.patients.length);
       } catch (error) {
         console.error("Erreur lors de la récupération des patients :", error);
+        console.error("PATIENT PAGE LOG: Détails de l'erreur complète:", error);
       }
     };
   

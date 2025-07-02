@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Context } from "./main";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
@@ -27,75 +27,77 @@ const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin } = useContext(Context);
   console.log("APP LOG: Current isAuthenticated state on render:", isAuthenticated);
   console.log("APP LOG: Admin state (on render, before fetch):", admin); // Log avant la requête
+  console.log("APP LOG (Initial Render): isAuthenticated =", isAuthenticated, "Admin =", admin);
+  if (!isAuthenticated && window.location.pathname !== '/login') {
+      // Si pas authentifié et pas déjà sur la page de login, rediriger vers login
+      // console.log("APP LOG (Redirect): Not authenticated, redirecting to /login.");
+      // return <Navigate to="/login" />; // Si vous aviez une redirection ici
+  }
 
 
   useEffect(() => {
-    const fetchUser = async () => {
-      console.log("APP LOG: fetchUser called to verify authentication.");
-      try {
-        // --- LOGS DE DIAGNOSTIC ---
-        console.log("APP.JS LOG: Tentative de fetch user (GET /admin/me). État initial isAuthenticated:", isAuthenticated);
+      // ... (votre fonction fetchUser) ...
+      const fetchUser = async () => {
+          console.log("APP LOG (fetchUser): Appel à /admin/me.");
+          try {
+              const response = await axios.get(
+                  `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/user/admin/me`,
+                  { withCredentials: true }
+              );
+              console.log("APP LOG (fetchUser Success): Réponse user data:", response.data.user);
+              setAdmin(response.data.user);
+              setIsAuthenticated(true); // C'est ici que ça passe à true
+              console.log("APP LOG (fetchUser Success): isAuthenticated mis à TRUE. Admin mis à jour.");
+          } catch (error) {
+              console.error("APP LOG (fetchUser Error): Échec de /admin/me:", error.response?.status, error.response?.data?.message || error.message);
+              setIsAuthenticated(false);
+              setAdmin({}); // Réinitialiser l'admin
+              console.log("APP LOG (fetchUser Error): isAuthenticated mis à FALSE. Admin réinitialisé.");
+          }
+      };
 
-        // --- CORRECTION CRUCIALE DE L'URL ICI ! ---
-        const response = await axios.get(
-          "https://clinico-backend-final.onrender.com/api/v1/user/admin/me", // L'URL CORRECTE pour vérifier l'authentification
-          { withCredentials: true }
-        );
-        console.log("APP LOG: /admin/me SUCCESS. Full response data:", response.data); // Log la réponse complète
-        console.log("APP LOG: /admin/me SUCCESS. User object from response:", response.data.user); // Log l'objet user
-        setIsAuthenticated(true);
-        setAdmin(response.data.user);
-        // --- LOG DE SUCCÈS ---
-        console.log("APP.JS LOG: Utilisateur fetché avec succès:", response.data.user.email);
-        console.log("APP LOG: Admin state UPDATED in context to:", response.data.user); // Log l'objet après setAdmin
-      } catch (error) {
-        setIsAuthenticated(false);
-        setAdmin({});
-        console.log("APP LOG: Admin state RESET in context.");
-        // --- LOG D'ERREUR ---
-        console.error("APP.JS ERROR: Échec du fetch user. Message d'erreur:", error.response?.data?.message || error.message);
-        // console.error("APP.JS ERROR: Détails complets de l'erreur:", error); // Peut être décommenté pour plus de détails si besoin
+      // Condition de déclenchement :
+      if (isAuthenticated === null) { // Au tout premier chargement
+          console.log("APP LOG (useEffect): isAuthenticated est null, déclenchement de fetchUser.");
+          fetchUser();
+      } else if (isAuthenticated === false && window.location.pathname !== '/login') {
+          // Si on est clairement non authentifié et pas sur la page login, on peut re-tenter ou laisser Navigate gérer
+          console.log("APP LOG (useEffect): isAuthenticated est false, mais pas sur /login. (Peut être une re-vérification)");
+          // fetchUser(); // Peut-être que cet appel n'est pas nécessaire ici si Navigate est utilisé
+      } else if (isAuthenticated === true && (!admin || Object.keys(admin).length === 0)) {
+          // Si authentifié mais admin vide, recharger
+          console.log("APP LOG (useEffect): isAuthenticated est true mais admin vide. Déclenchement de fetchUser.");
+          fetchUser();
+      } else {
+          console.log("APP LOG (useEffect): État d'authentification stable. Pas de fetchUser.");
       }
-    };
+  }, [isAuthenticated, admin]); // Dépendances
 
-    // Lance fetchUser une seule fois au montage du composant App.
-    // Le tableau de dépendances vide [] empêche les exécutions multiples inutiles.
-    fetchUser();
-  }, []); // Dépendances vides pour un seul appel au montage
-
-  // Ce bloc gère la redirection si isAuthenticated est faux AU MOMENT DU RENDER
-  // (après le premier chargement ou si fetchUser le remet à false)
-  // Dashboard.jsx contient également une redirection similaire.
-  if (!isAuthenticated) {
-    console.log("APP LOG: Non authentifié, redirection vers /login.");
-    // Pas de <Navigate /> direct ici pour éviter les boucles si Dashboard.jsx s'en occupe déjà
-  }
-  // Pour un état de chargement initial, avant que fetchUser n'ait eu le temps de s'exécuter
-  if (isAuthenticated === undefined) { 
-    return <div>Chargement de l'authentification...</div>;
-  }
-
-
+  // --- Vérifiez la logique de rendu des Routes ---
   return (
-    <Router>
+ <Router>
+      {/* La Sidebar est toujours là, même si non authentifié */}
       <Sidebar />
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/Patient/addnew" element={<AddNewPatient />} />
-        <Route path="/patients" element={<Patient />} />
-        <Route path="/prescription" element={<AddPrescription />} />
-        <Route path="/calendar" element={<Calendar />} />
-        
-        <Route path="/dossier-patient/:id" element={<DossierPatient />} />
-        <Route path="/prescription-options" element={<PrescriptionOptions />} />
-        <Route path="/bilan" element={<Bilan />} />
-        <Route path="/certificat-arret" element={<CertificatArret />} />
-        <Route path="/justification" element={<Justification />} />
-        <Route path="/blocnote" element={<Blocnote />} />
-        <Route path="/change-password" element={<ChangePassword />} />
-        {/* Assure-toi que cette route est bien là pour la modification */}
-        <Route path="/modifier-patient/:id" element={<AddNewPatient />} /> 
+        {/* Route racine : affiche le Dashboard si authentifié, sinon redirige vers /login */}
+        <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+
+        {/* Page de connexion : si déjà authentifié, redirige vers le Dashboard */}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
+
+        {/* Routes protégées : affichent le composant si authentifié, sinon redirigent vers /login */}
+        <Route path="/Patient/addnew" element={isAuthenticated ? <AddNewPatient /> : <Navigate to="/login" />} />
+        <Route path="/patients" element={isAuthenticated ? <Patient /> : <Navigate to="/login" />} />
+        <Route path="/prescription" element={isAuthenticated ? <AddPrescription /> : <Navigate to="/login" />} />
+        <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate to="/login" />} />
+        <Route path="/dossier-patient/:id" element={isAuthenticated ? <DossierPatient /> : <Navigate to="/login" />} />
+        <Route path="/prescription-options" element={isAuthenticated ? <PrescriptionOptions /> : <Navigate to="/login" />} />
+        <Route path="/bilan" element={isAuthenticated ? <Bilan /> : <Navigate to="/login" />} />
+        <Route path="/certificat-arret" element={isAuthenticated ? <CertificatArret /> : <Navigate to="/login" />} />
+        <Route path="/justification" element={isAuthenticated ? <Justification /> : <Navigate to="/login" />} />
+        <Route path="/blocnote" element={isAuthenticated ? <Blocnote /> : <Navigate to="/login" />} />
+        <Route path="/change-password" element={isAuthenticated ? <ChangePassword /> : <Navigate to="/login" />} />
+        <Route path="/modifier-patient/:id" element={isAuthenticated ? <AddNewPatient /> : <Navigate to="/login" />} /> {/* Pour la modification */}
       </Routes>
       <ToastContainer position="top-center" />
     </Router>

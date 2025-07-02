@@ -12,8 +12,10 @@ const Dashboard = () => {
   const [unconsultedPatientsToday, setUnconsultedPatientsToday] = useState(0);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const navigate = useNavigate();
+  
 
-  const { isAuthenticated, admin } = useContext(Context);
+  
+  const { isAuthenticated, admin, shouldRefreshDashboard, setShouldRefreshDashboard } = useContext(Context);
   console.log("DASHBOARD LOG: Component rendered. isAuthenticated:", isAuthenticated, "Admin data received:", admin); // <<< AJOUTÉ
   console.log("DASHBOARD LOG: Admin firstName:", admin?.firstName, "lastName:", admin?.lastName); // <<< AJOUTÉ
 
@@ -37,7 +39,7 @@ const fetchData = async () => {
   try {
     // Récupérer tous les patients
     const patientsResponse = await axios.get(
-      "https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+      `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients`,
       { withCredentials: true }
     );
     console.log("DASHBOARD LOG: Réponse Patients (tous) :", patientsResponse.data.patients.length);
@@ -67,10 +69,10 @@ const fetchData = async () => {
     console.log("DASHBOARD LOG: Date formatée pour backend (YYYY-MM-DD) :", formattedDateForBackend);
     console.log("DASHBOARD LOG: Bornes de filtrage frontend (start UTC) :", startOfCurrentDayUTC.toISOString());
     console.log("DASHBOARD LOG: Bornes de filtrage frontend (end UTC) :", endOfCurrentDayUTC.toISOString());
-    console.log("DASHBOARD LOG: URL de la requête by-date :", `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${formattedDateForBackend}`);
+    console.log("DASHBOARD LOG: URL de la requête by-date :", `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/by-date?date=${formattedDateForBackend}`);
     
     const appointmentsResponse = await axios.get(
-      `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${formattedDateForBackend}`,
+      `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/by-date?date=${formattedDateForBackend}`,
       { withCredentials: true }
     );
 
@@ -127,15 +129,19 @@ const fetchData = async () => {
     setUnconsultedPatientsToday(0);
   }
 };
-    if (isAuthenticated) {
+  if (isAuthenticated || shouldRefreshDashboard) { // <<< AJOUTEZ shouldRefreshDashboard ICI
       fetchData();
+      // Une fois les données rafraîchies, remettez shouldRefreshDashboard à false
+      if (shouldRefreshDashboard) {
+        setShouldRefreshDashboard(false);
+      }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, shouldRefreshDashboard]);
 
   const handleUpdateStatus = async (patientId, newStatus) => {
     try {
       await axios.put(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/mark-seen/${patientId}`,
         { seen: newStatus === "Vu" },
         { withCredentials: true }
       );
@@ -168,7 +174,7 @@ const fetchData = async () => {
   const handleUpdateAppointmentTime = async (patientId, appointmentId, newDate) => {
     try {
       await axios.put(
-        "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/update-appointment-time`,
         {
           patientId,
           appointmentId,
@@ -181,7 +187,7 @@ const fetchData = async () => {
       // Recharger les données après la mise à jour
       const today = new Date();
       const appointmentsResponse = await axios.get(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${today.toISOString()}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/by-date?date=${today.toISOString()}`,
         { withCredentials: true }
       );
      

@@ -10,6 +10,7 @@ const Login = () => {
 
   const { isAuthenticated, setIsAuthenticated } = useContext(Context);
   const navigateTo = useNavigate();
+  console.log("LOGIN COMPONENT LOG: isAuthenticated =", isAuthenticated);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -50,6 +51,7 @@ const Login = () => {
   };
 
   if (isAuthenticated) {
+    console.log("LOGIN COMPONENT LOG: Authenticated is TRUE, redirecting to /.");
     return <Navigate to={"/"} />;
   }
 

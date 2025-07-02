@@ -23,7 +23,7 @@ const Justification = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients`,
           {withCredentials: true}
         );
         setPatients(response.data.patients);
@@ -61,7 +61,7 @@ const Justification = () => {
 
     try {
       const response = await axios.put(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/${selectedPatient}/add-justification`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${selectedPatient}/add-justification`,
         justificationData,
         {
           withCredentials: true // Ajouté ici

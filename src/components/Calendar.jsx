@@ -46,7 +46,7 @@ const fetchAppointments = async (selectedDate) => {
   console.log("CALENDAR: Requête RDV pour date:", selectedDate.toISOString()); // <<< AJOUTÉ
   try {
     const response = await axios.get(
-      `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${format(selectedDate, "yyyy-MM-dd")}`,
+      `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/by-date?date=${format(selectedDate, "yyyy-MM-dd")}`,
       { withCredentials: true }
     );
     console.log("CALENDAR: Réponse RDV (patients trouvés):", response.data.patients.length); // <<< AJOUTÉ
@@ -56,9 +56,10 @@ const fetchAppointments = async (selectedDate) => {
         }); // <<< AJOUTÉ
     } // <<< AJOUTÉ
     setAppointments(response.data.patients);
+    console.log("CALENDAR PAGE LOG: Réponse réussie, RDV reçus:", response.data.length);
   } catch (error) {
     console.error("CALENDAR ERREUR fetchAppointments:", error.response?.data?.message || error.message); // <<< AJOUTÉ
-    console.error("CALENDAR DÉTAILS ERREUR RDV:", error); // <<< AJOUTÉ
+    console.error("CALENDAR PAGE LOG: Détails de l'erreur complète:", error); 
     toast.error("Erreur lors du chargement des rendez-vous");
   }
 };
@@ -66,7 +67,7 @@ const fetchAppointments = async (selectedDate) => {
 const fetchAllPatients = async () => {
   console.log("CALENDAR: Requête tous les patients."); // <<< AJOUTÉ
   try {
-    const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
+    const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients`,
       {withCredentials: true }
     );
     console.log("CALENDAR: Réponse tous les patients:", response.data.patients.length); // <<< AJOUTÉ
@@ -111,7 +112,7 @@ const fetchAllPatients = async () => {
           newPatientData.append("phoneNumber", newPatientPhoneNumber);
 
           const response = await axios.post(
-              "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
+              `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/addnew`,
               newPatientData,
               {
                   headers: { "Content-Type": "multipart/form-data" },
@@ -154,7 +155,7 @@ const fetchAllPatients = async () => {
       appointmentDate.setMinutes(minutes);
 
       const response = await axios.put(
-          "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
+          `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/schedule-appointment`,
           {
               patientId: patientIdToSchedule, // <<< UTILISE L'ID DU NOUVEAU PATIENT OU DE L'EXISTANT
               appointmentDate: appointmentDate.toISOString(),
@@ -176,7 +177,7 @@ const fetchAllPatients = async () => {
   const handleMarkAsSeen = async (patientId) => {
     try {
       await axios.put(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/mark-seen/${patientId}`,
         {}, // Corps de la requête
         { withCredentials: true } // Configuration de la requête
       );
@@ -192,7 +193,7 @@ const fetchAllPatients = async () => {
     try {
       const newAppointmentDate = new Date(newTime);
       await axios.put(
-        "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/update-appointment-time`,
         { // Corps de la requête
             patientId,
             appointmentId,
