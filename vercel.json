@@ -3,6 +3,6 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "redirects": [
-    { "source": "/(.*)", "destination": "/index.html", "status": 200 }
+    { "source": "/(.*)", "destination": "/index.html", "statusCode": 200 } // <<< CORRIGEZ ICI
   ]
 }
