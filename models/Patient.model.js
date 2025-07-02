@@ -38,9 +38,16 @@ const patientSchema = new mongoose.Schema(
       enum: ["Male", "Female", "Other"]
     },
     appointments: [{
-      date: { type: Date, required: true }}],
-    seen: { type: Boolean, default: false }, 
-    
+      date: { type: Date, required: true },
+      emailReminderSent: { // <<< DÉPLACÉ ICI
+        type: Boolean,
+        default: false,
+      },
+      emailReminderSentAt: { // <<< DÉPLACÉ ICI
+        type: Date,
+        default: null,
+      },
+    }],
     
     certificats: [{
       date: Date,
@@ -118,8 +125,10 @@ const patientSchema = new mongoose.Schema(
         note: String 
       }],
     }],
+     
    
     registrationDate: { type: Date, default: Date.now }
+    
   },
   { timestamps: true }
 );
@@ -133,4 +142,4 @@ patientSchema.pre('save', async function(next) {
   next();
 });
 
-export const Patient = mongoose.model("Patient", patientSchema);
+export default mongoose.model("Patient", patientSchema);

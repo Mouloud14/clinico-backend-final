@@ -54,6 +54,8 @@ const userSchema = new mongoose.Schema({
     public_id: String,
     url: String,
   }
+
+  
 });
 
 userSchema.pre("save", async function (next) {
@@ -73,4 +75,4 @@ userSchema.methods.generateJsonWebToken = function () {
   });
 };
 
-export const User = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);

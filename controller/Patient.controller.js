@@ -1,4 +1,4 @@
-import { Patient } from "../models/Patient.model.js";
+import Patient from "../models/Patient.model.js";
 
 // Fonction pour ajouter un nouveau patient
 export const addNewPatient = async (req, res) => {

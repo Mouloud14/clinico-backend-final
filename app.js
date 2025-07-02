@@ -1,3 +1,4 @@
+import { sendEmail } from "./utils/sendEmail.js";
 import 'dotenv/config'; 
 console.log("APP.JS LOG: Application démarrant...");
 import express from "express";
@@ -41,4 +42,21 @@ app.use("/api/v1/patient", patientRouter);
 dbConnection();
 
 app.use(errorMiddleware);
+
+app.get("/testemail", async (req, res) => { // <<< AJOUTEZ CETTE ROUTE DE TEST
+    try {
+        await sendEmail({
+            email: "mouloudka18392@gmail.com", // <<< METTEZ VOTRE EMAIL PERSONNEL ICI POUR RECEVOIR LE TEST
+            subject: "Test Email Medoclic",
+            message: "Ceci est un email de test de votre plateforme Medoclic. Il a été envoyé via Nodemailer.",
+        });
+        res.status(200).json({ success: true, message: "Email de test envoyé avec succès !" });
+    } catch (error) {
+        console.error("Erreur lors de l'envoi de l'email de test:", error);
+        res.status(500).json({ success: false, message: `Échec de l'envoi de l'email de test: ${error.message}` });
+    }
+});
+
+app.use(errorMiddleware); // Ceci doit rester la dernière ligne
+
 export default app;
