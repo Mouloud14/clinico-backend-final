@@ -476,19 +476,31 @@ export const updatePatientInfo = async (req, res) => {
       return res.status(404).json({ message: "Patient non trouvé" });
     }
 
+    // Vérifier si le numéro de patient existe déjà pour un autre patient
+    if (updateData.patientNumber && updateData.patientNumber !== patient.patientNumber) {
+      const existingPatientNumber = await Patient.findOne({
+        patientNumber: updateData.patientNumber,
+        doctor: req.user._id,
+        _id: { $ne: id }
+      });
+      if (existingPatientNumber) {
+        return res.status(400).json({ message: "Ce numéro de patient est déjà utilisé." });
+      }
+    }
+
     // Vérifier si l'email existe déjà pour un autre patient
     if (updateData.email && updateData.email !== patient.email) {
-  if (updateData.email.trim() !== "") { // <<< Ajoutez cette condition pour les emails non vides
-    const existingEmail = await Patient.findOne({
-      email: updateData.email.toLowerCase(), // Bonne pratique: stocker emails en minuscules
-      doctor: req.user._id,
-      _id: { $ne: id }
-    });
-    if (existingEmail) {
-      return res.status(400).json({ message: "Email déjà utilisé par un autre patient." });
+      if (updateData.email.trim() !== "") {
+        const existingEmail = await Patient.findOne({
+          email: updateData.email.toLowerCase(),
+          doctor: req.user._id,
+          _id: { $ne: id }
+        });
+        if (existingEmail) {
+          return res.status(400).json({ message: "Email déjà utilisé par un autre patient." });
+        }
+      }
     }
-  }
-}
 
     // Gestion des fichiers médicaux
     const medicalFiles = [];
