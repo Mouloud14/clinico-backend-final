@@ -173,7 +173,7 @@ const Blocnote = () => {
                 <p className="patient-data">Age : {calculateAge(selectedPatientData.dob)}</p>
               </div>
 
-              <h2 className="certificate-title">NOTE MÉDICALE</h2>
+              <h2 className="certificate-title">Examen clinique du jour </h2>
 
               <div className="note-content">
                 <div className="note-text">
@@ -208,7 +208,7 @@ const Blocnote = () => {
         <>
           <h2 className="form-title">
             <FaNotesMedical className="title-icon" />
-            Bloc-notes Médical
+            Examen clinique du jour
           </h2>
           <form onSubmit={handleSubmit} className="add-prescription-form">
             <div className="form-row">
@@ -278,7 +278,7 @@ const Blocnote = () => {
             </div>
 
             <div className="form-group note-input-group">
-              <label>Note médicale :</label>
+              <label>Examen clinique du jour :</label>
               <div className="note-input-container">
                 <textarea
                   ref={textareaRef}

@@ -45,7 +45,7 @@ const Sidebar = () => {
     { icon: <IoPersonSharp />, label: "Patients inscrits", action: () => navigateTo("/patients") },
     { icon: <FaFilePrescription />, label: "Ordonnance", action: () => navigateTo("/prescription-options") },
     { icon: <AiFillCalendar />, label: "RDV", action: () => navigateTo("/calendar") },
-    { icon: <FaNotesMedical />, label: "Bloc-notes", action: () => navigateTo("/blocnote") },
+    { icon: <FaNotesMedical />, label: "Examen du jour", action: () => navigateTo("/blocnote") },
     { 
       icon: <FiSettings />, 
       label: "Réinitialiser le mot de passe", 
