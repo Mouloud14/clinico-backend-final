@@ -76,13 +76,11 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
 
 // Conserver uniquement les fonctions utiles
 export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
-  const user = req.user; // L'utilisateur est attaché à req.user par le middleware d'authentification
-  console.log("BACKEND LOG (getUserDetails): User object retrieved from DB:", user); // <<< AJOUTÉ
-
-  res.status(200).json({
-    success: true,
-    user, // Ceci devrait inclure firstName et lastName
-  });
+  const user = req.user;
+  const userWithoutPassword = user.toObject();
+  delete userWithoutPassword.password;
+  console.log("BACKEND LOG (getUserDetails): User object sent to frontend:", userWithoutPassword); // <<< Log pour vérif
+  res.status(200).json({ success: true, user: userWithoutPassword });
 });
 
  export const logoutAdmin = catchAsyncErrors(async (req, res, next) => { 
