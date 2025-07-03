@@ -8,7 +8,7 @@ import ErrorHandler from '../middlewares/error.js'; // Ou votre classe ErrorHand
 // <<< SEULE ET UNIQUE DÉCLARATION DE LA FONCTION >>>
 export const startReminderJob = () => {
     // Cette tâche s'exécutera tous les jours à 22h00 (10 PM)
-    cron.schedule('38 0 * * *', async () => { // OU L'HEURE DE VOTRE TEST
+    cron.schedule('50 14 * * *', async () => { // OU L'HEURE DE VOTRE TEST
         console.log('SCHEDULER LOG: Démarrage de la tâche de rappel des rendez-vous...');
         const today = new Date();
         const tomorrow = new Date(today);
