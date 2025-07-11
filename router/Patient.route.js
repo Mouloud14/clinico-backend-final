@@ -15,7 +15,10 @@ import {
   updateAppointmentTime,
   updatePatientPhoneNumber, 
   addNoteToPatient,
-  updatePatientInfo // Nouvelle fonction ajoutée
+  updatePatientInfo,
+  sendReminderNow,
+  
+
 } from "../controller/Patient.controller.js";
 import { isAdminAuthenticated } from "../middlewares/auth.js"; 
 
@@ -41,5 +44,8 @@ router.put("/update-appointment-time", isAdminAuthenticated, updateAppointmentTi
 router.put("/:id/update-phone-number", isAdminAuthenticated, updatePatientPhoneNumber);
 router.put("/:id/add-note", isAdminAuthenticated, addNoteToPatient);
 router.put("/:id/update-info", isAdminAuthenticated, upload.any(), updatePatientInfo); // Nouvelle route
+router.put("/patient/schedule-appointment", isAdminAuthenticated, scheduleAppointment);
+router.post("/patient/send-reminder-now", isAdminAuthenticated, sendReminderNow);
+router.put("/patient/schedule-appointment", isAdminAuthenticated, scheduleAppointment); // Exemple, vérifiez votre méthode HTTP
 
 export default router;

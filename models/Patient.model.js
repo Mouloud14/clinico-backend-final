@@ -1,5 +1,35 @@
 import mongoose from "mongoose";
 
+const appointmentSchema = new mongoose.Schema({
+    date: { type: Date, required: true },
+    seenStatus: { type: Boolean, default: false },
+    emailReminderSent: { type: Boolean, default: false },
+    emailReminderSentAt: { type: Date, default: null },
+
+ emailReminderActive: { // Si le rappel est activé pour ce RDV
+        type: Boolean,
+        default: false,
+    },
+    emailReminderTime: { // '24h-before', 'manual-now', 'custom-date'
+        type: String,
+        enum: ['24h-before', 'manual-now', 'custom-date'], // Ajoutez 'manual-now' pour le stockage si nécessaire
+        default: '24h-before', // Valeur par défaut si non spécifié
+        nullable: true, // Peut être null si emailReminderActive est false
+    },
+    customReminderDate: { // Pour l'option 'custom-date'
+        type: Date,
+        nullable: true, // Peut être null si l'option n'est pas 'custom-date'
+    },
+    emailReminderSent: { // Si le rappel a déjà été envoyé
+        type: Boolean,
+        default: false,
+    },
+    emailReminderSentAt: { // Date et heure d'envoi du rappel
+        type: Date,
+        nullable: true,
+    },
+});
+
 const patientSchema = new mongoose.Schema(
   {
     doctor: {
@@ -37,17 +67,7 @@ const patientSchema = new mongoose.Schema(
       required: false, // Modifié: non obligatoire
       enum: ["Male", "Female", "Other"]
     },
-    appointments: [{
-      date: { type: Date, required: true },
-      emailReminderSent: { // <<< DÉPLACÉ ICI
-        type: Boolean,
-        default: false,
-      },
-      emailReminderSentAt: { // <<< DÉPLACÉ ICI
-        type: Date,
-        default: null,
-      },
-    }],
+    appointments: [appointmentSchema],
     
     certificats: [{
       date: Date,
@@ -132,6 +152,7 @@ const patientSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 
 // Méthode pour générer automatiquement un numéro de patient
 patientSchema.pre('save', async function(next) {
