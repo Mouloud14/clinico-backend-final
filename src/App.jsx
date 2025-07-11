@@ -18,6 +18,7 @@ import Bilan from "./components/Bilan";
 import CertificatArret from "./components/CertificatArret";
 import Justification from "./components/Justification";
 import Blocnote from "./components/Blocnote";
+import Signup from "./components/Signup";
 import "./App.css";
 
 // Configure Axios pour envoyer les cookies avec chaque requête par défaut
@@ -104,6 +105,7 @@ const App = () => {
         <Route path="/blocnote" element={isAuthenticated ? <Blocnote /> : <Navigate to="/login" />} />
         <Route path="/change-password" element={isAuthenticated ? <ChangePassword /> : <Navigate to="/login" />} />
         <Route path="/modifier-patient/:id" element={isAuthenticated ? <AddNewPatient /> : <Navigate to="/login" />} /> {/* Pour la modification */}
+        <Route path="/signup" element={<Signup />} />      
       </Routes>
       <ToastContainer position="top-center" />
     </Router>
