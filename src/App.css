@@ -2694,7 +2694,7 @@
 /* ========== FORMULAIRE DE RENDEZ-VOUS ========== */
 .appointment-form {
   width: 100%;
-  padding: 1.5rem;
+  padding: 2rem;
   background: var(--background-white);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-lg);
@@ -2721,9 +2721,15 @@
   color: var(--text-primary);
   font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
+  padding-bottom: 1rem;
   position: relative;
 }
+.appointment-form .form-row-inline {
+    margin-top: 1rem; /* Ajuste cette valeur au besoin pour l'espacement après le h3 */
+    margin-bottom: 1.5rem; /* Garde une marge en dessous pour le séparer de l'heure */
+}
+
 /* Style pour le bouton "Ajouter un nouveau patient" */
 .add-new-patient-btn {
     width: 100%;
@@ -2852,7 +2858,7 @@
   background: var(--background-white);
   cursor: pointer;
   transition: var(--transition);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
   box-shadow: var(--shadow-sm);
   appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -2860,6 +2866,10 @@
   background-repeat: no-repeat;
   background-size: 1.5rem 1.5rem;
   padding-right: 2.5rem;
+}
+
+.appointment-form .form-group:has(input[type="datetime-local"]) {
+    margin-bottom: 0.8rem; /* <--- Espacement plus compact pour ce champ conditionnel */
 }
 
 .appointment-form select:focus {
@@ -2871,6 +2881,8 @@
 
 .appointment-form button {
   width: 100%;
+   margin-top: 1.5rem; 
+  margin-bottom: 0; 
   background: var(--gradient-success);
   color: white;
   font-size: 1.1rem;
@@ -4661,4 +4673,134 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+/* Dans App.css */
+
+/* Pour aligner les éléments sur une même ligne */
+.form-row-inline {
+   display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 1,5rem; /* <--- AJUSTEZ CETTE MARGE SUPÉRIEURE APRÈS LE H3 */
+  margin-bottom: 0.5rem;/* Espace en dessous de cette ligne */
+}
+
+/* Ajustement pour que le label de la checkbox soit bien aligné avec la checkbox */
+/* Dans App.css ou là où se trouve .checkbox-container */
+.checkbox-container {
+  display: flex;
+  align-items: center; /* Centre verticalement les éléments */
+  gap: 8px; /* Espace entre la checkbox et son texte */
+  cursor: pointer;
+  /* Pour que la case soit à droite du texte */
+  flex-direction: row-reverse; /* <--- AJOUTE OU VÉRIFIE CETTE LIGNE */
+  
+}
+
+
+
+/* Pour le groupe select si vous voulez qu'il soit compact en ligne */
+.inline-select-group {
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.inline-select-group label {
+    white-space: nowrap; /* Empêche le texte du label de passer à la ligne */
+}
+
+.appointment-form .form-group {
+    margin-bottom: 0.8rem; /* Assure un espacement constant entre les groupes de champs */
+}
+
+.toggle-switch {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: inline-block;
+  width: 50px; /* Largeur totale du switch */
+  height: 28px; /* Hauteur totale du switch */
+  vertical-align: middle; /* Pour aligner verticalement avec le texte */
+}
+
+/* Le vrai input checkbox (doit être caché) */
+.toggle-switch-checkbox {
+  opacity: 0 !important; /* Rend l'input invisible */
+  width: 0 !important;    /* Lui donne une largeur de 0 */
+  height: 0 !important;   /* Lui donne une hauteur de 0 */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  appearance: none !important;       /* Supprime l'apparence native */
+  -webkit-appearance: none !important; /* Pour les navigateurs WebKit */
+}
+
+/* Le slider (le "pouce" glissant du switch) */
+.toggle-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc; /* Couleur de fond quand le switch est DÉSACTIVÉ (gris) */
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+/* Le cercle du slider (le "pouce") */
+.toggle-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px; /* Hauteur du pouce */
+  width: 20px; /* Largeur du pouce */
+  left: 4px; /* Position initiale du pouce (état OFF) */
+  bottom: 4px; /* Position verticale du pouce */
+  background-color: white; /* Couleur du pouce */
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+/* Styles pour les sliders arrondis */
+.toggle-switch-slider.round {
+  border-radius: 28px; /* Rend la piste arrondie (basé sur la hauteur) */
+}
+
+.toggle-switch-slider.round:before {
+  border-radius: 50%; /* Rend le pouce parfaitement rond */
+}
+
+/* Quand le checkbox est COCHÉ (état ACTIF) */
+/* Change la couleur de fond de la piste */
+.toggle-switch-checkbox:checked + .toggle-switch-slider {
+  background-color: var(--primary-color); /* <--- Couleur de fond quand ACTIF (bleu) */
+}
+
+/* Quand le checkbox est COCHÉ (état ACTIF) */
+/* Déplace le pouce vers la droite */
+.toggle-switch-checkbox:checked + .toggle-switch-slider:before {
+  -webkit-transform: translateX(22px); /* Déplace le pouce vers la droite */
+  -ms-transform: translateX(22px);
+  transform: translateX(22px);
+}
+
+
+.form-row-inline {
+  /* ... (propriétés existantes) ... */
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem; /* Ajustez au besoin pour l'espace entre le switch et "Heure :" */
+  align-items: center; /* Assure que texte et switch sont alignés verticalement */
+  justify-content: flex-end /* Assure que la ligne commence à gauche */
+}
+
+/* Ajustez le texte du label si besoin */
+.checkbox-label-text {
+  color: var(--text-primary); /* S'assure que le texte est bien visible */
+  font-weight: 500; /* Peut-être rendre le texte un peu plus épais */
+  white-space: nowrap; /* Empêche le texte de passer à la ligne */
+ 
 }
