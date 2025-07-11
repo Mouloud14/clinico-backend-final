@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, Link } from "react-router-dom"; // Ajout de Link
 import { toast } from "react-toastify";
 import { Context } from "../main";
 import axios from "axios";
@@ -123,6 +123,11 @@ const Login = () => {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
           <span>Secure connection protected by SSL encryption</span>
+        </div>
+        
+        {/* Lien d'inscription ajouté ici */}
+        <div className="signup-link">
+          <p>Vous n'avez pas de compte? <Link to="/signup">Inscrivez-vous</Link></p>
         </div>
       </div>
     </div>
