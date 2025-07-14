@@ -214,7 +214,7 @@ export const addCertificatToPatient = catchAsyncErrors(async (req, res, next) =>
   }
 });
 
-export const addBilanToPatient = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next
+export const addBilanToPatient = catchAsyncErrors(async (req, res, next) => {
   try {
     const patient = await Patient.findOne({
       _id: req.params.id,
@@ -225,9 +225,13 @@ export const addBilanToPatient = catchAsyncErrors(async (req, res, next) => { //
       return next(new ErrorHandler("Patient non trouvé", 404));
     }
 
-    patient.bilans.push(req.body);
+    // Ajouter le champ additionalTests
+    patient.bilans.push({
+      ...req.body,
+      additionalTests: req.body.additionalTests || [] // Récupère les tests supplémentaires
+    });
+    
     await patient.save();
-
     res.status(200).json({ message: "Bilan ajouté avec succès", patient });
   } catch (error) {
     next(new ErrorHandler(error.message, 500));
@@ -609,5 +613,3 @@ export const sendReminderNow = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Échec de l'envoi du rappel immédiat.", 500));
     }
 });
-
-

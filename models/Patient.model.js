@@ -103,7 +103,8 @@ const patientSchema = new mongoose.Schema(
         HDL_LDL: Boolean,
         Triglycerides: Boolean,
         TauxAcideUrique: Boolean
-      }
+      },
+      additionalTests: [String] // Nouveau champ pour tests supplémentaires
     }],
     
     justifications: [{
