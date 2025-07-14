@@ -18,7 +18,11 @@ const AppointmentCalendar = () => {
   const [newPatientFirstName, setNewPatientFirstName] = useState("");
   const [newPatientLastName, setNewPatientLastName] = useState("");
   const [newPatientPhoneNumber, setNewPatientPhoneNumber] = useState("");
-  const [showNewPatientFields, setShowNewPatientFields] = useState(false); // Nouvel état
+  const [showNewPatientFields, setShowNewPatientFields] = useState(false);
+  const [emailReminderActive, setEmailReminderActive] = useState(false);
+  const [emailReminderTimeOption, setEmailReminderTimeOption] = useState('24h-before');
+  const [customReminderDateTime, setCustomReminderDateTime] = useState('');
+
 
   // Effet pour charger les rendez-vous et les patients au montage du composant
   useEffect(() => {
@@ -40,45 +44,44 @@ const AppointmentCalendar = () => {
   }, [appointments]);
 
   // Fonction pour récupérer les rendez-vous d'une date spécifique
-// Dans Calendar.jsx
-// ...
-const fetchAppointments = async (selectedDate) => {
-  console.log("CALENDAR: Requête RDV pour date:", selectedDate.toISOString()); // <<< AJOUTÉ
-  try {
-    const response = await axios.get(
-      `https://clinico-backend-final.onrender.com/api/v1/patient/by-date?date=${format(selectedDate, "yyyy-MM-dd")}`,
-      { withCredentials: true }
-    );
-    console.log("CALENDAR: Réponse RDV (patients trouvés):", response.data.patients.length); // <<< AJOUTÉ
-    if (response.data.patients.length > 0) { // <<< AJOUTÉ
-        response.data.patients.forEach(p => { // <<< AJOUTÉ
-            console.log(`CALENDAR: RDV patient: ${p.firstName} ${p.lastName}, RDV dates: ${p.appointments.map(a => new Date(a.date).toISOString())}`); // <<< AJOUTÉ
-        }); // <<< AJOUTÉ
-    } // <<< AJOUTÉ
-    setAppointments(response.data.patients);
-  } catch (error) {
-    console.error("CALENDAR ERREUR fetchAppointments:", error.response?.data?.message || error.message); // <<< AJOUTÉ
-    console.error("CALENDAR DÉTAILS ERREUR RDV:", error); // <<< AJOUTÉ
-    toast.error("Erreur lors du chargement des rendez-vous");
-  }
-};
+  const fetchAppointments = async (selectedDate) => {
+    console.log("CALENDAR: Requête RDV pour date:", selectedDate.toISOString());
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/by-date?date=${format(selectedDate, "yyyy-MM-dd")}`,
+        { withCredentials: true }
+      );
+      console.log("CALENDAR: Réponse RDV (patients trouvés):", response.data.patients.length);
+      if (response.data.patients.length > 0) {
+        response.data.patients.forEach(p => {
+          console.log(`CALENDAR: RDV patient: ${p.firstName} ${p.lastName}, RDV dates: ${p.appointments.map(a => new Date(a.date).toISOString())}`);
+        });
+      }
+      setAppointments(response.data.patients || []);
+      console.log("CALENDAR PAGE LOG: Réponse réussie, nombre de patients avec RDV reçus:", response.data.patients ? response.data.patients.length : 0);
+      console.log("CALENDAR PAGE LOG: Contenu patients reçus:", response.data.patients || []);
+    } catch (error) {
+      console.error("CALENDAR ERREUR fetchAppointments:", error.response?.data?.message || error.message);
+      console.error("CALENDAR PAGE LOG: Détails de l'erreur complète:", error);
+      toast.error("Erreur lors du chargement des rendez-vous");
+    }
+  };
 
-const fetchAllPatients = async () => {
-  console.log("CALENDAR: Requête tous les patients."); // <<< AJOUTÉ
-  try {
-    const response = await axios.get("https://clinico-backend-final.onrender.com/api/v1/patient/patients",
-      {withCredentials: true }
-    );
-    console.log("CALENDAR: Réponse tous les patients:", response.data.patients.length); // <<< AJOUTÉ
-    setPatients(response.data.patients);
-  } catch (error) {
-    console.error("CALENDAR ERREUR fetchAllPatients:", error.response?.data?.message || error.message); // <<< AJOUTÉ
-    console.error("CALENDAR DÉTAILS ERREUR PATIENTS:", error); // <<< AJOUTÉ
-    toast.error("Erreur lors du chargement des patients");
-  }
-};
+  const fetchAllPatients = async () => {
+    console.log("CALENDAR: Requête tous les patients.");
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/patients`,
+        { withCredentials: true }
+      );
+      console.log("CALENDAR: Réponse tous les patients:", response.data.patients.length);
+      setPatients(response.data.patients);
+    } catch (error) {
+      console.error("CALENDAR ERREUR fetchAllPatients:", error.response?.data?.message || error.message);
+      console.error("CALENDAR DÉTAILS ERREUR PATIENTS:", error);
+      toast.error("Erreur lors du chargement des patients");
+    }
+  };
 
-  
 
   // Fonction pour gérer le changement de date dans le calendrier
   const handleDateTimeChange = (newDate) => {
@@ -98,85 +101,96 @@ const fetchAllPatients = async () => {
 
   // Fonction pour programmer un nouveau rendez-vous
   const scheduleAppointment = async () => {
-  let patientIdToSchedule = selectedPatient; // Par défaut, c'est un patient existant
+    let patientIdToSchedule = selectedPatient; // Par défaut, c'est un patient existant
 
-  if (selectedPatient === "new") {
+    if (selectedPatient === "new") {
       // ... (Validation des champs du nouveau patient : newPatientFirstName, etc.) ...
 
       try {
-          // 2. Créer le nouveau patient via l'API (cette partie est déjà là)
-          const newPatientData = new FormData();
-          newPatientData.append("firstName", newPatientFirstName);
-          newPatientData.append("lastName", newPatientLastName);
-          newPatientData.append("phoneNumber", newPatientPhoneNumber);
+        // 2. Créer le nouveau patient via l'API (cette partie est déjà là)
+        const newPatientData = new FormData();
+        newPatientData.append("firstName", newPatientFirstName);
+        newPatientData.append("lastName", newPatientLastName);
+        newPatientData.append("phoneNumber", newPatientPhoneNumber);
 
-          const response = await axios.post(
-              "https://clinico-backend-final.onrender.com/api/v1/patient/addnew",
-              newPatientData,
-              {
-                  headers: { "Content-Type": "multipart/form-data" },
-                  withCredentials: true,
-              }
-          );
-          // <<< MODIFICATION CRUCIALE ICI : Mettre à jour patientIdToSchedule avec l'ID du nouveau patient
-          patientIdToSchedule = response.data.patient._id; // <-- C'EST CETTE LIGNE QUI FAIT LE LIEN
-          toast.success("Nouveau patient ajouté avec succès et rendez-vous en cours !"); // Message mis à jour
+        const response = await axios.post(
+          `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/addnew`,
+          newPatientData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+          }
+        );
+        // <<< MODIFICATION CRUCIALE ICI : Mettre à jour patientIdToSchedule avec l'ID du nouveau patient
+        patientIdToSchedule = response.data.patient._id; // <-- C'EST CETTE LIGNE QUI FAIT LE LIEN
+        toast.success("Nouveau patient ajouté avec succès et rendez-vous en cours !"); // Message mis à jour
 
-          // Réinitialiser les champs du nouveau patient pour vider le formulaire
-          setNewPatientFirstName("");
-          setNewPatientLastName("");
-          setNewPatientPhoneNumber("");
-          setShowNewPatientFields(false); // Masquer les champs après l'ajout
-          setSelectedPatient(""); // Réinitialiser la sélection
+        // Réinitialiser les champs du nouveau patient pour vider le formulaire
+        setNewPatientFirstName("");
+        setNewPatientLastName("");
+        setNewPatientPhoneNumber("");
+        setShowNewPatientFields(false); // Masquer les champs après l'ajout
+        setSelectedPatient(""); // Réinitialiser la sélection
 
-          // REMARQUE : fetchAllPatients() est important pour que le nouveau patient apparaisse
-          // dans le sélecteur la prochaine fois, mais il ne bloque pas le flux ici.
-          fetchAllPatients();
+        // REMARQUE : fetchAllPatients() est important pour que le nouveau patient apparaisse
+        // dans le sélecteur la prochaine fois, mais il ne bloque pas le flux ici.
+        fetchAllPatients();
 
       } catch (error) {
-          toast.error(error.response?.data?.message || "Erreur lors de l'ajout du nouveau patient.");
-          console.error(error);
-          return; // Arrêter la fonction si l'ajout du patient échoue
+        toast.error(error.response?.data?.message || "Erreur lors de l'ajout du nouveau patient.");
+        console.error(error);
+        return; // Arrêter la fonction si l'ajout du patient échoue
       }
-  }
+    }
 
-  // Si aucun patient n'est sélectionné OU si le nouvel ajout a échoué (patientIdToSchedule sera toujours "new")
-  if (!patientIdToSchedule || patientIdToSchedule === "new") {
+    // Si aucun patient n'est sélectionné OU si le nouvel ajout a échoué (patientIdToSchedule sera toujours "new")
+    if (!patientIdToSchedule || patientIdToSchedule === "new") {
       toast.error("Veuillez sélectionner un patient ou corriger les informations du nouveau patient.");
       return;
-  }
+    }
 
-  // 3. Programmer le rendez-vous (utilise maintenant l'ID du nouveau patient si applicable)
-  try {
+    // 3. Programmer le rendez-vous (utilise maintenant l'ID du nouveau patient si applicable)
+    try {
       const [hours, minutes] = time.split(":");
       const appointmentDate = new Date(date);
       appointmentDate.setHours(hours);
       appointmentDate.setMinutes(minutes);
 
-      const response = await axios.put(
-          "https://clinico-backend-final.onrender.com/api/v1/patient/schedule-appointment",
-          {
-              patientId: patientIdToSchedule, // <<< UTILISE L'ID DU NOUVEAU PATIENT OU DE L'EXISTANT
-              appointmentDate: appointmentDate.toISOString(),
-          },
-          { withCredentials: true }
+      const appointmentData = {
+        patientId: patientIdToSchedule,
+        appointmentDate: appointmentDate.toISOString(),
+        // Ajoutez les options de rappel :
+        emailReminderActive: emailReminderActive,
+        emailReminderTime: emailReminderActive && emailReminderTimeOption !== 'manual-now' ? emailReminderTimeOption : null, // Envoyer si actif ET pas 'manual-now'
+        customReminderDate: emailReminderActive && emailReminderTimeOption === 'custom-date' ? customReminderDateTime : null, // Envoyer si activé ET option 'custom-date'
+      };
+
+      const response = await axios.put( // OU POST, selon votre route de création/mise à jour de RDV
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/schedule-appointment`, // Adaptez votre route
+        appointmentData, // <<< ENVOYER L'OBJET AVEC LES NOUVELLES OPTIONS
+        { withCredentials: true }
       );
 
       toast.success("Rendez-vous programmé avec succès !"); // Message mis à jour
       fetchAppointments(date); // Recharger les rendez-vous pour la date actuelle
-      // REMARQUE : Pour que le Dashboard se rafraîchisse, il faudra un `Maps("/")` après ça.
-      // Si vous voulez une redirection, placez-la ici : navigate("/");
-  } catch (error) {
+
+      // Optionnel : Si vous voulez déclencher l'envoi immédiat du rappel
+      if (emailReminderActive && emailReminderTimeOption === 'manual-now') {
+        console.log("CALENDAR: Déclenchement de l'envoi immédiat du rappel...");
+        
+        toast.info("Rappel manuel en cours d'envoi...");
+      }
+
+    } catch (error) {
       toast.error(error.response?.data?.message || "Erreur lors de la programmation du rendez-vous.");
       console.error(error);
-  }
-};
-
+    }
+  };
   // Fonction pour marquer un patient comme "Vu"
   const handleMarkAsSeen = async (patientId) => {
     try {
       await axios.put(
-        `https://clinico-backend-final.onrender.com/api/v1/patient/mark-seen/${patientId}`,
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/mark-seen/${patientId}`,
         {}, // Corps de la requête
         { withCredentials: true } // Configuration de la requête
       );
@@ -192,11 +206,11 @@ const fetchAllPatients = async () => {
     try {
       const newAppointmentDate = new Date(newTime);
       await axios.put(
-        "https://clinico-backend-final.onrender.com/api/v1/patient/update-appointment-time",
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/update-appointment-time`,
         { // Corps de la requête
-            patientId,
-            appointmentId,
-            newAppointmentDate: newAppointmentDate.toISOString(),
+          patientId,
+          appointmentId,
+          newAppointmentDate: newAppointmentDate.toISOString(),
         },
         { withCredentials: true } // Configuration de la requête
       );
@@ -216,11 +230,81 @@ const fetchAllPatients = async () => {
     <div className="calendar-container">
       <h2>Calendrier des Rendez-vous</h2>
 
-      {/* Container pour calendrier + formulaire côte à côte */}
+      {/* Container principal pour aligner le formulaire de rendez-vous et le calendrier.
+        Ces deux éléments seront des enfants directs de ce div.
+      */}
       <div className="calendar-form-container">
-        {/* Formulaire pour programmer un nouveau rendez-vous */}
+
+        {/* DÉBUT DU FORMULAIRE DE PROGRAMMATION DE RENDEZ-VOUS (le cadre vert).
+          Tous les champs de saisie pour un nouveau rendez-vous, y compris les options de rappel,
+          doivent se trouver à l'intérieur de ce div.
+        */}
         <div className="appointment-form">
           <h3>Programmer un nouveau rendez-vous</h3>
+
+          {/* Container pour la checkbox "Activer le rappel" et le sélecteur "Envoyer le rappel".
+            Ils sont ici car ils font partie des options de programmation.
+          */}
+         
+   <div class="form-row-inline">
+  {/* Texte "Activer le rappel par e-mail" - mis dans un form-group pour alignement */}
+  <div class="form-group" > {/* Permet au texte de pousser le switch à droite */}
+    <span class="checkbox-label-text">ACTIVER LE RAPPEL PAR E-MAIL</span>
+  </div>
+
+  {/* Le nouveau bouton bascule (Toggle Switch) */}
+  <div class="form-group"> {/* Ce form-group contient le switch lui-même */}
+    <label class="toggle-switch">
+      {/* Le vrai input checkbox, il sera caché et gérera l'état */}
+      <input
+        type="checkbox"
+        className="toggle-switch-checkbox"
+        checked={emailReminderActive}
+        onChange={(e) => setEmailReminderActive(e.target.checked)}
+      />
+      {/* Le "slider" est la partie visuelle du bouton bascule */}
+      <span class="toggle-switch-slider round"></span>
+    </label>
+  </div>
+
+  {/* Le reste de form-row-inline pour le sélecteur "Envoyer le rappel" */}
+  {emailReminderActive && (
+    <div class="form-group inline-select-group">
+      <label htmlFor="reminderTimeOption">Envoyer le rappel :</label>
+      <select
+        id="reminderTimeOption"
+        value={emailReminderTimeOption}
+        onChange={(e) => {
+          setEmailReminderTimeOption(e.target.value);
+          if (e.target.value !== 'custom-date') {
+            setCustomReminderDateTime('');
+          }
+        }}
+      >
+        <option value="24h-before">24 heures avant le RDV</option>
+        <option value="custom-date">À une date/heure spécifique</option>
+      </select>
+    </div>
+  )}
+
+          </div>
+
+          {/* Le champ de date et heure personnalisée.
+            Il est ici, directement après les options de rappel, car il en dépend.
+            C'était l'élément mal placé dans tes versions précédentes.
+          */}
+          {emailReminderActive && emailReminderTimeOption === 'custom-date' && (
+            <div className="form-group">
+              <label htmlFor="customReminderDate">Date et heure du rappel :</label>
+              <input
+                type="datetime-local"
+                id="customReminderDate"
+                value={customReminderDateTime}
+                onChange={(e) => setCustomReminderDateTime(e.target.value)}
+              />
+            </div>
+          )}
+          {/* FIN DU BLOC DATE/HEURE CUSTOM */}
 
           <div className="time-selection">
             <label>Heure : </label>
@@ -256,12 +340,12 @@ const fetchAllPatients = async () => {
           {/* Bouton pour afficher les champs d'ajout de nouveau patient */}
           {!showNewPatientFields && (
             <button
-              type="button" // Important: C'est un bouton "normal", pas de soumission de formulaire
+              type="button"
               onClick={() => {
-                setShowNewPatientFields(true); // Affiche les champs
-                setSelectedPatient("new"); // Sélectionne "new" implicitement
+                setShowNewPatientFields(true);
+                setSelectedPatient("new");
               }}
-              className="add-new-patient-btn" // Nouvelle classe pour styliser
+              className="add-new-patient-btn"
             >
               + Ajouter un nouveau patient
             </button>
@@ -277,7 +361,7 @@ const fetchAllPatients = async () => {
                 value={newPatientFirstName}
                 onChange={(e) => setNewPatientFirstName(e.target.value)}
                 className="appointment-form-input"
-                required={showNewPatientFields} // Requis seulement si visible
+                required={showNewPatientFields}
               />
               <input
                 type="text"
@@ -285,7 +369,7 @@ const fetchAllPatients = async () => {
                 value={newPatientLastName}
                 onChange={(e) => setNewPatientLastName(e.target.value)}
                 className="appointment-form-input"
-                required={showNewPatientFields} // Requis seulement si visible
+                required={showNewPatientFields}
               />
               <input
                 type="text"
@@ -293,30 +377,33 @@ const fetchAllPatients = async () => {
                 value={newPatientPhoneNumber}
                 onChange={(e) => setNewPatientPhoneNumber(e.target.value)}
                 className="appointment-form-input"
-                required={showNewPatientFields} // Requis seulement si visible
+                required={showNewPatientFields}
               />
               <button
                 type="button"
-                onClick={() => setShowNewPatientFields(false)} // Masque les champs
-                className="cancel-add-patient-btn" // Nouvelle classe pour styliser
+                onClick={() => setShowNewPatientFields(false)}
+                className="cancel-add-patient-btn"
               >
                 Annuler l'ajout
               </button>
             </div>
           )}
 
-          {/* Bouton principal pour programmer le rendez-vous (reste le même) */}
+          {/* Bouton principal pour programmer le rendez-vous */}
           <button onClick={scheduleAppointment}>Programmer</button>
-        </div>
+        </div> {/* FIN DU FORMULAIRE DE PROGRAMMATION DE RENDEZ-VOUS */}
+
+        {/* Le calendrier, autre enfant direct de calendar-form-container */}
         <Calendar
           onChange={handleDateTimeChange}
           value={date}
           locale="fr-FR"
           className="react-calendar"
+          calendarType="gregory"
         />
-      </div>
+      </div> {/* FIN DU calendar-form-container */}
 
-      {/* Liste des rendez-vous pour la date sélectionnée */}
+      {/* Liste des rendez-vous pour la date sélectionnée (cet élément était déjà correctement placé) */}
       <div className="appointments-list" ref={appointmentsRef}>
         <h3>Rendez-vous du {format(date, "dd/MM/yyyy")}</h3>
 
@@ -393,5 +480,7 @@ const fetchAllPatients = async () => {
     </div>
   );
 };
+
+
 
 export default AppointmentCalendar;

@@ -17,7 +17,7 @@ const DossierPatient = () => {
   useEffect(() => {
     const fetchPatientDetails = async () => {
       try {
-        const response = await axios.get(`https://clinico-backend-final.onrender.com/api/v1/patient/${id}`, {
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${id}`, {
           withCredentials: true,
         });
         setPatient(response.data);
@@ -39,7 +39,7 @@ const DossierPatient = () => {
 
       try {
         const response = await axios.put(
-          `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/add-medical-files`,
+          `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${id}/add-medical-files`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -99,7 +99,9 @@ const DossierPatient = () => {
     switch (doc.type) {
       
       
-      case "prescription":
+      // Remplacer la section "prescription" dans le fichier DossierPatient.jsx
+
+case "prescription":
   return (
     <div className="prescription-card" key={doc._id}>
       <div className="prescription-header">
@@ -111,39 +113,35 @@ const DossierPatient = () => {
           <p><strong>Adresse :</strong> {doc.doctor?.cabinetAddress || "Non renseigné"}</p>
         </div>
         <div className="patient-data-container">
-                     <p className="patient-data">Nom : {patient.lastName}</p>
-                     <span className="separator">|</span>
-                     <p className="patient-data">Prénom : {patient.firstName}</p>
-                     <span className="separator">|</span>
-                     <p className="patient-data">Age : {calculateAge(patient.dob)}</p>
-                   </div>
-                   <div className="document-date">
-        <p><strong>Le :</strong> {new Date(doc.date).toLocaleDateString('fr-FR')}</p>
-      </div>
+          <p className="patient-data">Nom : {patient.lastName}</p>
+          <span className="separator">|</span>
+          <p className="patient-data">Prénom : {patient.firstName}</p>
+          <span className="separator">|</span>
+          <p className="patient-data">Age : {calculateAge(patient.dob)}</p>
+        </div>
+        <div className="document-date">
+          <p><strong>Le :</strong> {new Date(doc.date).toLocaleDateString('fr-FR')}</p>
+        </div>
                    
-                   <strong className="titre">ORDONNANCE</strong>
-        
+        <strong className="titre">ORDONNANCE</strong>
       </div>
      
-      
       {doc.notes && <p><strong>Notes :</strong> {doc.notes}</p>}
       <h4>Médicaments :</h4>
       <ul>
         {doc.medications.map((med, idx) => (
           <li key={idx}>
-            <strong>{med.name} {med.dosage} mg </strong>  - {med.boxes} boîte(s)
+            <strong>{med.nomCommercial} {med.dosage} mg </strong> - {med.boxes} boîte(s)
             {med.note && <div className="medication-note"> {med.note}</div>}
           </li>
         ))}
       </ul>
       <div className="signature">
-                
-                <p>Signature et cachet du médecin</p>
-                <p> {doc.doctorName} </p>
-              </div>
+        <p>Signature et cachet du médecin</p>
+        <p> {doc.doctorName} </p>
+      </div>
     </div>
   );
-
 
 
   
@@ -461,4 +459,4 @@ const DossierPatient = () => {
   );
 };
 
-export default DossierPatient;
+export default DossierPatient;    

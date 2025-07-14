@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Context } from "../main";
 import "../App.css";
 
 const AddNewPatient = () => {
   const { id } = useParams(); // Pour savoir si on est en mode modification
   const navigate = useNavigate();
+  const { setShouldRefreshDashboard } = useContext(Context);
   const isEditing = Boolean(id);
 
   const [formData, setFormData] = useState({
@@ -34,7 +36,7 @@ const AddNewPatient = () => {
       const fetchPatientData = async () => {
         try {
           const response = await axios.get(
-            `https://clinico-backend-final.onrender.com/api/v1/patient/${id}`,
+            `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${id}`,
             { withCredentials: true }
           );
           const patient = response.data;
@@ -115,19 +117,20 @@ const AddNewPatient = () => {
       if (isEditing) {
         // Mode modification
        response = await axios.put(
-  `https://clinico-backend-final.onrender.com/api/v1/patient/${id}/update-info`, 
+  `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/${id}/update-info`, 
   data, 
   {
     headers: { "Content-Type": "multipart/form-data" },
-    withCredentials: true, // <<< CHANGEZ credentials: true en withCredentials: true
+    withCredentials: true,
   }
 );
         toast.success("Informations du patient mises à jour avec succès");
+        setShouldRefreshDashboard(true);
         navigate(`/dossier-patient/${id}`); // Retourner au dossier du patient
       } else {
         // Mode création
         response = await axios.post(
-          "https://clinico-backend-final.onrender.com/api/v1/patient/addnew", 
+          `${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/patient/addnew`, 
           data, 
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -135,6 +138,8 @@ const AddNewPatient = () => {
           }
         );
         toast.success("Patient ajouté avec succès");
+        setShouldRefreshDashboard(true);
+         navigate('/patients'); 
         // Réinitialiser le formulaire
         setFormData({
           patientNumber: "",
@@ -171,8 +176,20 @@ const AddNewPatient = () => {
         <div className="required-fields">
           <h3>Informations obligatoires</h3>
           
+          {/* Champ numéro du patient - toujours visible */}
           <div className="form-group">
-          <label htmlFor="firstName">Prenom:</label>
+            <label htmlFor="patientNumber">Numéro du patient:</label>
+            <input 
+              type="text" 
+              name="patientNumber" 
+              placeholder={isEditing ? "Numéro du patient" : "Numéro du patient (généré automatiquement si vide)"} 
+              value={formData.patientNumber}
+              onChange={handleChange} 
+            />
+          </div>
+          
+          <div className="form-group">
+          <label htmlFor="firstName">Prénom:</label>
           <input 
             type="text" 
             name="firstName" 
@@ -184,7 +201,7 @@ const AddNewPatient = () => {
           </div>
 
           <div className="form-group">
-          <label htmlFor="firstName">Nom</label>
+          <label htmlFor="lastName">Nom:</label>
           <input 
             type="text" 
             name="lastName" 
@@ -196,7 +213,7 @@ const AddNewPatient = () => {
           </div>
 
           <div className="form-group">
-          <label htmlFor="phoneNumber">Telephone:</label>
+          <label htmlFor="phoneNumber">Téléphone:</label>
           <input
             type="text"
             name="phoneNumber"
@@ -206,31 +223,15 @@ const AddNewPatient = () => {
             required
           />
           </div>
-          <button type="submit" className="submit-button-inline"> {/* Ajoutez une nouvelle classe pour le style */}
-    Ajouter le patient
-  </button>
-  
           
-
-
+          <button type="submit" className="submit-button-inline">
+            {isEditing ? "Mettre à jour les informations" : "Ajouter le patient"}
+          </button>
         </div>
 
         {/* Champs optionnels */}
         <div className="optional-fields">
           <h3>Informations optionnelles</h3>
-          
-          {!isEditing && (
-            <div className="form-group">
-          <label htmlFor="patientNumber"> Numéro du patient:</label>
-            <input 
-              type="text" 
-              name="patientNumber" 
-              placeholder="Numéro du patient (généré automatiquement si vide)" 
-              value={formData.patientNumber}
-              onChange={handleChange} 
-            />
-            </div>
-          )}
           
           <div className="form-group">
           <label htmlFor="address">Adresse :</label>
@@ -277,7 +278,7 @@ const AddNewPatient = () => {
           </div>
           
           <div className="form-group">
-          <label htmlFor="bloodGroup">groupe sanguin:</label>
+          <label htmlFor="bloodGroup">Groupe sanguin:</label>
           <select 
             name="bloodGroup" 
             value={formData.bloodGroup}
@@ -296,8 +297,7 @@ const AddNewPatient = () => {
           </div>
           
           <div className="form-group">
-         
-          <label htmlFor="height">Taille:</label>
+          <label htmlFor="gender">Sexe:</label>
             <select 
               name="gender" 
               value={formData.gender}

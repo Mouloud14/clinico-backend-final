@@ -8,6 +8,7 @@ import { FaFilePrescription } from "react-icons/fa6";
 import { AiFillCalendar } from "react-icons/ai";
 import { FiSettings } from "react-icons/fi";
 import { FaNotesMedical } from "react-icons/fa"
+import { FaPills } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Context } from "../main";
@@ -20,7 +21,7 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      const res = await axios.get("https://clinico-backend-final.onrender.com/api/v1/user/admin/logout", {
+      const res = await axios.get(`${import.meta.env.VITE_REACT_APP_API_URL}/api/v1/user/admin/logout`, {
         withCredentials: true,
       });
       toast.success(res.data.message);
@@ -45,7 +46,9 @@ const Sidebar = () => {
     { icon: <IoPersonSharp />, label: "Patients inscrits", action: () => navigateTo("/patients") },
     { icon: <FaFilePrescription />, label: "Ordonnance", action: () => navigateTo("/prescription-options") },
     { icon: <AiFillCalendar />, label: "RDV", action: () => navigateTo("/calendar") },
-    { icon: <FaNotesMedical />, label: "Bloc-notes", action: () => navigateTo("/blocnote") },
+    { icon: <FaNotesMedical />, label: "Examen du jour", action: () => navigateTo("/blocnote") },
+    { icon: <FaPills />, label: "Ajouter Médicament", action: () => navigateTo("/add-medicament") },
+
     { 
       icon: <FiSettings />, 
       label: "Réinitialiser le mot de passe", 
