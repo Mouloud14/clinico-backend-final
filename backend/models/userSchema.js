@@ -53,7 +53,17 @@ const userSchema = new mongoose.Schema({
   docAvatar: {
     public_id: String,
     url: String,
-  }
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 userSchema.pre("save", async function (next) {
@@ -73,4 +83,4 @@ userSchema.methods.generateJsonWebToken = function () {
   });
 };
 
-export const User = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);
