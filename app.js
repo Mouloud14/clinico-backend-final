@@ -19,12 +19,13 @@ console.log("OWNER_EMAIL:", process.env.OWNER_EMAIL);
 app.use(
   cors({
     origin: [
-      "https://medoclic-frontend.vercel.app", // L'URL de production principale de votre frontend Vercel
-      "http://localhost:5173"                  // <<< CECI DOIT ABSOLUMENT ÊTRE LÀ ET CORRECT
+      "https://medoclic-dashboard-6oqcn1wns-moulouds-projects-0f7926a8.vercel.app", // <<< METTEZ CETTE URL EXACTE
+      // Si vous avez un domaine personnalisé comme 'https://medoclic.com', ajoutez-le aussi ici.
+      "http://localhost:5173" // Pour les tests en local
     ],
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
+    credentials: true, // Gardez ceci pour les cookies
   })
 );
 // ... le reste du code reste inchangé
