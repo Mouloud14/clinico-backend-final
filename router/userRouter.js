@@ -1,20 +1,32 @@
+// Dans backend/router/userRouter.js
 import express from "express";
-import { addNewAdmin, getUserDetails, login, logoutAdmin,changePassword,forgotPassword, resetPassword } from "../controller/userController.js";
-
-
-import { isAdminAuthenticated } from "../middlewares/auth.js";
+import { 
+  addNewAdmin, 
+  getUserDetails, 
+  login, 
+  logoutAdmin,
+  changePassword,
+  forgotPassword, 
+  resetPassword, 
+  addNewReceptionist,
+  getAllReceptionists,
+  deleteReceptionist,
+} from "../controller/userController.js";
+import { isAuthenticated } from "../middlewares/auth.js"; 
 
 const router = express.Router();
 
 router.post("/login", login);
-router.post("/admin/addnew", addNewAdmin); // <<< Assurez-vous que c'est bien ça pour l'instant
-router.get("/admin/me", isAdminAuthenticated, getUserDetails);
-router.get("/admin/logout", isAdminAuthenticated, logoutAdmin);
-router.put("/change-password", isAdminAuthenticated, changePassword);
+router.post("/admin/addnew", isAuthenticated, addNewAdmin);
+router.get("/admin/me", isAuthenticated, getUserDetails);
+router.get("/admin/logout", isAuthenticated, logoutAdmin);
+router.put("/change-password", isAuthenticated, changePassword);
 
-// Ajouter dans les routes existantes
 router.post("/forgot-password", forgotPassword);
 router.put("/reset-password/:token", resetPassword);
 
+router.post("/receptionist/addnew", isAuthenticated, addNewReceptionist);
+router.get("/receptionists/all", isAuthenticated, getAllReceptionists);
+router.delete("/receptionist/delete/:id", isAuthenticated, deleteReceptionist);
 
 export default router;

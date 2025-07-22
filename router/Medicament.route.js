@@ -1,3 +1,4 @@
+
 import express from "express";
 import { 
   addMedicament, 
@@ -6,14 +7,16 @@ import {
   updateMedicament, 
   deleteMedicament 
 } from "../controller/Medicament.controller.js";
-import { isAdminAuthenticated } from "../middlewares/auth.js";
+// NOUVEL IMPORT
+import { isAuthenticated } from "../middlewares/auth.js"; 
 
 const router = express.Router();
 
-router.post("/add", isAdminAuthenticated, addMedicament);
-router.get("/all", isAdminAuthenticated, getAllMedicaments);
-router.get("/:id", isAdminAuthenticated, getMedicamentById);
-router.put("/:id", isAdminAuthenticated, updateMedicament);
-router.delete("/:id", isAdminAuthenticated, deleteMedicament);
+// REMPLACER isAdminAuthenticated PAR isAuthenticated POUR TOUTES LES ROUTES
+router.post("/add", isAuthenticated, addMedicament);
+router.get("/all", isAuthenticated, getAllMedicaments);
+router.get("/:id", isAuthenticated, getMedicamentById);
+router.put("/:id", isAuthenticated, updateMedicament);
+router.delete("/:id", isAuthenticated, deleteMedicament);
 
 export default router;

@@ -4,194 +4,141 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import { sendEmail } from "../utils/sendEmail.js"; 
 import User from "../models/userSchema.js"; 
 
+const getDoctorId = (req) => {
+  if (req.user.role === "Receptionist") {
+    // Si c'est une réceptionniste, on utilise l'ID du médecin associé
+    return req.user.doctor;
+  }
+  // Sinon, c'est un admin, on utilise son propre ID
+  return req.user._id;
+};
+
+const getDoctorIdFromRequest = (req) => {
+    if (req.user.role === "Receptionist") {
+        return req.user.doctor;
+    }
+    return req.user._id;
+};
+
 // Fonction pour ajouter un nouveau patient
-export const addNewPatient = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next
-  try {
-    const doctorId = req.user._id; // Récupérer l'ID du médecin connecté
+export const addNewPatient = catchAsyncErrors(async (req, res, next) => {
+    const doctorId = getDoctorIdFromRequest(req);
     const {
-      patientNumber,
-      firstName,
-      lastName,
-      address,
-      dob,
-      weight,
-      height,
-      gender,
-      bloodGroup,
-      chronicDiseases,
-      pastSurgeries,
-      phoneNumber,
-      email,
-      nextAppointment,
+        patientNumber,
+        firstName,
+        lastName,
+        address,
+        dob,
+        weight,
+        height,
+        gender,
+        bloodGroup,
+        chronicDiseases,
+        pastSurgeries,
+        phoneNumber,
+        email,
+        nextAppointment,
     } = req.body;
 
-    // Vérifier si le numéro du patient existe déjà pour ce médecin
-    const existingPatient = await Patient.findOne({
-      patientNumber,
-      doctor: doctorId
-    });
+    const existingPatient = await Patient.findOne({ patientNumber, doctor: doctorId });
     if (existingPatient) {
-      return next(new ErrorHandler("Patient number already in use", 400)); // <<< UTILISER next(new ErrorHandler)
+        return next(new ErrorHandler("Patient number already in use", 400));
     }
-
 
     if (email && email.trim() !== "") {
-      const existingEmail = await Patient.findOne({
-          email: email.toLowerCase(),
-          doctor: doctorId
-      });
-      if (existingEmail) {
-          return next(new ErrorHandler("Cet email est déjà utilisé par un autre patient de ce médecin.", 400)); // <<< UTILISER next(new ErrorHandler)
-      }
-    }
-
-    // Gestion des fichiers médicaux
-    const medicalFiles = [];
-    if (req.files) {
-      const files = req.files.filter(file => file.fieldname === 'medicalFiles');
-      for (const file of files) {
-        const fileBuffer = file.buffer;
-        const base64File = fileBuffer.toString("base64");
-        const dataURI = `data:${file.mimetype};base64,${base64File}`;
-        medicalFiles.push({
-            url: dataURI,
-            addedDate: new Date()
+        const existingEmail = await Patient.findOne({
+            email: email.toLowerCase(),
+            doctor: doctorId
         });
-      }
+        if (existingEmail) {
+            return next(new ErrorHandler("Cet email est déjà utilisé par un autre patient de ce médecin.", 400));
+        }
     }
 
-    let profileImage = null;
-    const profileImageFile = req.files.find(file => file.fieldname === 'profileImage');
-    if (profileImageFile) {
-        const base64Image = profileImageFile.buffer.toString("base64");
-        const dataURI = `data:${profileImageFile.mimetype};base64,${base64Image}`;
-        profileImage = {
-            url: dataURI,
-            addedDate: new Date()
-        };
-    }
-
-    // Créer un nouveau patient avec le médecin associé
-    const newPatient = await Patient.create({
-      patientNumber,
-      firstName,
-      lastName,
-      address,
-      dob,
-      weight,
-      height,
-      gender,
-      bloodGroup,
-      chronicDiseases,
-      pastSurgeries,
-      medicalFiles,
-      phoneNumber,
-      email,
-      profileImage,
-      appointments: nextAppointment ? [{ date: new Date(nextAppointment) }] : [],
-      doctor: doctorId
+    const patient = await Patient.create({
+        patientNumber,
+        firstName,
+        lastName,
+        address,
+        dob,
+        weight,
+        height,
+        gender,
+        bloodGroup,
+        chronicDiseases,
+        pastSurgeries,
+        phoneNumber,
+        email,
+        nextAppointment,
+        doctor: doctorId,
     });
 
-    res.status(201).json({ message: "Patient added successfully", patient: newPatient });
-  } catch (error) {
-    next(new ErrorHandler(error.message, 500)); // <<< UTILISER next(new ErrorHandler)
-  }
+    res.status(201).json({ success: true, message: "Patient ajouté avec succès", patient });
 });
 
 // Fonction pour récupérer tous les patients du médecin
-export const getAllPatients = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next
-  try {
-    const patients = await Patient.find(
-      { doctor: req.user._id },
-      { medicalFiles: 0, __v: 0 }
-    ).lean();
-
-    res.status(200).json({ patients });
-  } catch (error) {
-    next(new ErrorHandler(error.message, 500)); // <<< UTILISER next(new ErrorHandler)
-  }
+export const getAllPatients = catchAsyncErrors(async (req, res, next) => {
+    const doctorId = getDoctorIdFromRequest(req);
+    const patients = await Patient.find({ doctor: doctorId });
+    res.status(200).json({ success: true, patients });
 });
 
-export const getPatientsByDate = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next
-  try {
+export const getPatientsByDate = catchAsyncErrors(async (req, res, next) => {
     const { date } = req.query;
+    const doctorId = getDoctorIdFromRequest(req);
 
-    console.log("--- Début getPatientsByDate ---");
-    console.log("Date reçue du frontend:", date);
+    if (!date) {
+        return next(new ErrorHandler("La date est requise pour récupérer les rendez-vous.", 400));
+    }
 
-    const queryDate = new Date(date);
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
 
-    const startOfDay = new Date(Date.UTC(
-        queryDate.getFullYear(),
-        queryDate.getMonth(),
-        queryDate.getDate(),
-        0, 0, 0, 0
-    ));
-
-    const endOfDay = new Date(Date.UTC(
-        queryDate.getFullYear(),
-        queryDate.getMonth(),
-        queryDate.getDate() + 1,
-        0, 0, 0, 0
-    ));
-
-    console.log("Période de recherche UTC (début):", startOfDay.toISOString());
-    console.log("Période de recherche UTC (fin):", endOfDay.toISOString());
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const patients = await Patient.find({
-      doctor: req.user._id,
-      'appointments.date': {
-        $gte: startOfDay,
-        $lt: endOfDay
-      }
-    });
+        doctor: doctorId,
+        'appointments.date': {
+            $gte: startOfDay,
+            $lte: endOfDay
+        }
+    }).populate('doctor', 'firstName lastName');
 
-    console.log("Patients trouvés par getPatientsByDate:", patients.length);
-    console.log("--- Fin getPatientsByDate ---");
-
-    res.status(200).json({ patients });
-  } catch (error) {
-    console.error("Erreur dans getPatientsByDate:", error); // Conserver le log pour le débogage
-    next(new ErrorHandler(error.message, 500)); // <<< UTILISER next(new ErrorHandler)
-  }
+    res.status(200).json({ success: true, patients });
 });
 
-export const getPatientById = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next
-  try {
-    const patient = await Patient.findOne({
-      _id: req.params.id,
-      doctor: req.user._id
-    });
-
-    if (!patient) {
-      return next(new ErrorHandler("Patient non trouvé", 404)); // <<< UTILISER next(new ErrorHandler)
-    }
-    res.json(patient);
-  } catch (error) {
-    next(new ErrorHandler(error.message, 500)); // <<< UTILISER next(new ErrorHandler)
-  }
-});
-
-export const markPatientAsSeen = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next
-  try {
+export const getPatientById = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
-    const patient = await Patient.findOne({
-      _id: id,
-      doctor: req.user._id
-    });
+    const doctorId = getDoctorIdFromRequest(req);
+
+    const patient = await Patient.findOne({ _id: id, doctor: doctorId });
 
     if (!patient) {
-      return next(new ErrorHandler("Patient non trouvé", 404)); // <<< UTILISER next(new ErrorHandler)
+        return next(new ErrorHandler("Patient non trouvé ou accès non autorisé.", 404));
     }
 
-    patient.seen = !patient.seen;
-    await patient.save();
+    res.status(200).json(patient);
+});
 
-    res.json({ message: "Statut mis à jour", seen: patient.seen });
-  } catch (error) {
-    console.error("Erreur serveur:", error); // Conserver le log
-    next(new ErrorHandler("Erreur serveur", 500)); // <<< UTILISER next(new ErrorHandler)
-  }
+export const markPatientAsSeen = catchAsyncErrors(async (req, res, next) => {
+    const { id } = req.params;
+    const doctorId = getDoctorId(req); // <<< OBTENIR L'ID DU BON DOCTEUR
+
+    const patient = await Patient.findOneAndUpdate(
+        { _id: id, doctor: doctorId, 'appointments.date': { $gte: new Date().setHours(0,0,0,0), $lt: new Date().setHours(23,59,59,999) } },
+        { $set: { 'appointments.$[elem].seenStatus': true } },
+        { 
+            new: true,
+            arrayFilters: [ { 'elem.seenStatus': false } ] // Mettre à jour seulement le premier RDV non vu du jour
+        }
+    );
+
+    if (!patient) {
+        return next(new ErrorHandler("Patient ou rendez-vous non trouvé, ou déjà mis à jour.", 404));
+    }
+
+    res.status(200).json({ success: true, message: "Statut du patient mis à jour avec succès !", patient });
 });
 
 export const addCertificatToPatient = catchAsyncErrors(async (req, res, next) => { // <<< AJOUTER catchAsyncErrors et next

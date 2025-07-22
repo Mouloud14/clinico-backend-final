@@ -1,7 +1,15 @@
+// Dans backend/utils/jwtToken.js
+import jwt from "jsonwebtoken";
+
 export const generateToken = (user, message, statusCode, res) => {
   const token = user.generateJsonWebToken();
-  // Determine the cookie name based on the user's role
-  const cookieName = user.role === 'Admin' ? 'adminToken' : 'patientToken';
+  
+  let cookieName;
+  if (user.role === 'Admin' || user.role === 'Receptionist') {
+    cookieName = 'adminToken';
+  } else {
+    cookieName = 'patientToken';
+  }
 
   res
     .status(statusCode)
@@ -9,7 +17,7 @@ export const generateToken = (user, message, statusCode, res) => {
       expires: new Date(
         Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
       ),
-    httpOnly: true,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production", 
       sameSite: process.env.NODE_ENV === "production" ? 'none' : 'Lax', 
     })

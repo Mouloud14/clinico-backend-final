@@ -22,22 +22,22 @@ const userSchema = new mongoose.Schema({
   },
   cabinetAddress: {
     type: String,
-    required: [true, "L'adresse du cabinet est requise"]
+    
   },
   cabinetPhone: {
     type: String,
-    required: [true, "Le téléphone du cabinet est requis"],
+    
     minLength: [10, "Numéro de téléphone invalide"],
     maxLength: [10, "Numéro de téléphone invalide"]
   },
   ordreNumber: {
     type: String,
-    required: [true, "Le numéro d'ordre est requis"],
+    
     unique: true
   },
   specialite: {
     type: String,
-    required: [true, "La spécialité est requise"]
+    
   },
   password: {
     type: String,
@@ -46,8 +46,9 @@ const userSchema = new mongoose.Schema({
     select: false
   },
   role: {
-    type: String,
+   type: String,
     required: true,
+    enum: ["Admin", "Receptionist"], // Assurez-vous que les rôles sont dans un enum
     default: "Admin"
   },
   docAvatar: {
@@ -63,6 +64,12 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  // NOUVEAU CHAMP POUR LIER LA RÉCEPTIONNISTE AU MÉDECIN
+  doctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Ne s'applique pas aux administrateurs
   },
 });
 

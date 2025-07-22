@@ -260,3 +260,80 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
     message: "Mot de passe mis à jour avec succès"
   });
 });
+
+export const addNewReceptionist = catchAsyncErrors(async (req, res, next) => {
+  const { firstName, lastName, email, password } = req.body;
+  const doctorId = req.user._id;
+
+  if (!firstName || !lastName || !email || !password) {
+    return next(new ErrorHandler("Veuillez remplir tous les champs obligatoires", 400));
+  }
+
+  const isEmailUsed = await User.findOne({ email });
+  if (isEmailUsed) {
+    return next(new ErrorHandler("Cet email est déjà utilisé pour un autre compte.", 400));
+  }
+  
+  const receptionist = await User.create({
+    firstName,
+    lastName,
+    email,
+    password,
+    role: "Receptionist",
+    doctor: doctorId, // On lie la réceptionniste au médecin
+    isVerified: true // On peut considérer que le médecin la vérifie en la créant
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Compte de réceptionniste créé avec succès.",
+    receptionist: {
+      _id: receptionist._id,
+      firstName: receptionist.firstName,
+      lastName: receptionist.lastName,
+      email: receptionist.email,
+      role: receptionist.role,
+      doctor: receptionist.doctor,
+      createdAt: receptionist.createdAt
+    }
+  });
+});
+
+
+// NOUVELLE FONCTION POUR RÉCUPÉRER TOUTES LES RÉCEPTIONNISTES
+export const getAllReceptionists = catchAsyncErrors(async (req, res, next) => {
+  const doctorId = req.user._id;
+
+  const receptionists = await User.find({
+    doctor: doctorId,
+    role: "Receptionist"
+  });
+
+  res.status(200).json({
+    success: true,
+    receptionists,
+  });
+});
+
+// NOUVELLE FONCTION POUR SUPPRIMER UNE RÉCEPTIONNISTE
+export const deleteReceptionist = catchAsyncErrors(async (req, res, next) => {
+  const doctorId = req.user._id;
+  const { id } = req.params;
+
+  const receptionist = await User.findOne({
+    _id: id,
+    doctor: doctorId,
+    role: "Receptionist"
+  });
+
+  if (!receptionist) {
+    return next(new ErrorHandler("Réceptionniste non trouvée ou accès non autorisé.", 404));
+  }
+
+  await receptionist.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Réceptionniste supprimée avec succès.",
+  });
+});
