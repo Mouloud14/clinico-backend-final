@@ -307,7 +307,6 @@ export const addNewReceptionist = catchAsyncErrors(async (req, res, next) => {
 });
 
 
-
 // NOUVELLE FONCTION POUR RÉCUPÉRER TOUTES LES RÉCEPTIONNISTES
 export const getAllReceptionists = catchAsyncErrors(async (req, res, next) => {
   const doctorId = req.user._id;
