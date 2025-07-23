@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
   role: {
    type: String,
     required: true,
-    enum: ["Admin", "Receptionist"], // Assurez-vous que les rôles sont dans un enum
+    enum: ["Admin", "Receptionist"],
     default: "Admin"
   },
   docAvatar: {
