@@ -22,22 +22,24 @@ const userSchema = new mongoose.Schema({
   },
   cabinetAddress: {
     type: String,
-    
+    required: [true, "L'adresse du cabinet est requise"]
   },
   cabinetPhone: {
     type: String,
-    
+    required: [true, "Le téléphone du cabinet est requis"],
     minLength: [10, "Numéro de téléphone invalide"],
     maxLength: [10, "Numéro de téléphone invalide"]
   },
+  // CHANGEMENT : ordreNumber est unique et requis SEULEMENT pour les Admins
   ordreNumber: {
     type: String,
-    
-    unique: true
+    required: function() { return this.role === 'Admin'; },
+    unique: true,
+    sparse: true // Permet plusieurs documents avec une valeur 'null'
   },
   specialite: {
     type: String,
-    
+    required: function() { return this.role === 'Admin'; } // SEULEMENT pour les Admins
   },
   password: {
     type: String,
@@ -46,9 +48,8 @@ const userSchema = new mongoose.Schema({
     select: false
   },
   role: {
-   type: String,
+    type: String,
     required: true,
-    enum: ["Admin", "Receptionist"],
     default: "Admin"
   },
   docAvatar: {
@@ -64,12 +65,6 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-  },
-  // NOUVEAU CHAMP POUR LIER LA RÉCEPTIONNISTE AU MÉDECIN
-  doctor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: false // Ne s'applique pas aux administrateurs
   },
 });
 
@@ -90,4 +85,6 @@ userSchema.methods.generateJsonWebToken = function () {
   });
 };
 
-export default mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+
+export default User;
