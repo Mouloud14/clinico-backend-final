@@ -1,4 +1,3 @@
-// Dans backend/router/Patient.route.js
 import express from "express";
 import multer from "multer";
 import { 

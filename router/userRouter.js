@@ -1,3 +1,4 @@
+// Dans backend/router/userRouter.js
 import express from "express";
 import { 
   addNewAdmin, 
@@ -6,29 +7,26 @@ import {
   logoutAdmin,
   changePassword,
   forgotPassword, 
-  resetPassword,
-  addNewReceptionist, // N'oubliez pas d'importer la nouvelle fonction
+  resetPassword, 
+  addNewReceptionist,
+  getAllReceptionists,
+  deleteReceptionist,
 } from "../controller/userController.js";
-
-
-import { isAdminAuthenticated } from "../middlewares/auth.js";
-import { isAuthenticated } from "../middlewares/auth.js";
-
+import { isAuthenticated } from "../middlewares/auth.js"; 
 
 const router = express.Router();
 
 router.post("/login", login);
-router.post("/admin/addnew", addNewAdmin); // <<< CORRIGÉ : AUCUN MIDDLEWARE ICI
-router.get("/admin/me", isAuthenticated, getUserDetails); // <<< CORRIGÉ : UTILISER isAuthenticated
-router.get("/admin/logout", isAuthenticated, logoutAdmin); // <<< CORRIGÉ : UTILISER isAuthenticated
-router.put("/change-password", isAuthenticated, changePassword); // <<< CORRIGÉ : UTILISER isAuthenticated
+router.post("/admin/addnew", isAuthenticated, addNewAdmin);
+router.get("/admin/me", isAuthenticated, getUserDetails);
+router.get("/admin/logout", isAuthenticated, logoutAdmin);
+router.put("/change-password", isAuthenticated, changePassword);
 
-// AJOUT DE LA NOUVELLE ROUTE POUR LA RÉCEPTIONNISTE
-router.post("/receptionist/addnew", isAuthenticated, addNewReceptionist); 
-
-// Routes de réinitialisation de mot de passe
 router.post("/forgot-password", forgotPassword);
 router.put("/reset-password/:token", resetPassword);
 
+router.post("/receptionist/addnew", isAuthenticated, addNewReceptionist);
+router.get("/receptionists/all", isAuthenticated, getAllReceptionists);
+router.delete("/receptionist/delete/:id", isAuthenticated, deleteReceptionist);
 
 export default router;
