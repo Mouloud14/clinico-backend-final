@@ -261,6 +261,7 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// Fonction pour ajouter un nouveau réceptionniste
 export const addNewReceptionist = catchAsyncErrors(async (req, res, next) => {
   const { firstName, lastName, email, password } = req.body;
   const doctorId = req.user._id;
@@ -269,25 +270,14 @@ export const addNewReceptionist = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Veuillez remplir tous les champs !", 400));
   }
 
-  // Créer un objet de vérification qui exclut l'ID du médecin
-  const existingReceptionist = await User.findOne({
-    $or: [{ email: email }, { ordreNumber: req.user.ordreNumber }],
-    _id: { $ne: doctorId }
-  });
-
-  if (existingReceptionist) {
-    if (existingReceptionist.email === email) {
-      return next(new ErrorHandler("Un compte avec cet email existe déjà.", 400));
-    }
-    if (existingReceptionist.ordreNumber === req.user.ordreNumber) {
-      return next(new ErrorHandler("Votre numéro d'ordre est déjà utilisé pour un autre compte de la clinique.", 400));
-    }
+  // Vérifier si un compte avec cet email existe déjà
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return next(new ErrorHandler("Un compte avec cet email existe déjà.", 400));
   }
-
-  // Nous devons générer un nouveau numéro d'ordre pour la réceptionniste
-  // Il est préférable de le faire ici, ou de demander à l'utilisateur de l'entrer
-  // Pour le moment, nous allons simplement utiliser un numéro générique
-  // Tu peux adapter cette logique plus tard pour une gestion plus fine
+  
+  // Création d'un nouvel utilisateur avec le rôle "Receptionist"
+  // Aucun ordreNumber, cabinetAddress ou cabinetPhone n'est requis
   const newReceptionist = await User.create({
     firstName,
     lastName,
@@ -295,15 +285,9 @@ export const addNewReceptionist = catchAsyncErrors(async (req, res, next) => {
     password,
     role: "Receptionist",
     doctor: doctorId,
-    // Nous devons trouver un moyen de générer un ordreNumber unique
-    // Pour l'instant, on peut le laisser vide et le modèle le générera
   });
-
-  res.status(201).json({
-    success: true,
-    message: "Réceptionniste ajouté avec succès !",
-    user: newReceptionnist
-  });
+  
+  generateToken(newReceptionist, "Réceptionniste ajouté avec succès !", 201, res);
 });
 
 

@@ -20,26 +20,27 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, "Email invalide"],
     unique: true
   },
+  // CHANGEMENT : Rendre conditionnel
   cabinetAddress: {
     type: String,
-    required: [true, "L'adresse du cabinet est requise"]
+    required: function() { return this.role === 'Admin'; }
   },
+  // CHANGEMENT : Rendre conditionnel
   cabinetPhone: {
     type: String,
-    required: [true, "Le téléphone du cabinet est requis"],
+    required: function() { return this.role === 'Admin'; },
     minLength: [10, "Numéro de téléphone invalide"],
     maxLength: [10, "Numéro de téléphone invalide"]
   },
-  // CHANGEMENT : ordreNumber est unique et requis SEULEMENT pour les Admins
   ordreNumber: {
     type: String,
     required: function() { return this.role === 'Admin'; },
     unique: true,
-    sparse: true // Permet plusieurs documents avec une valeur 'null'
+    sparse: true
   },
   specialite: {
     type: String,
-    required: function() { return this.role === 'Admin'; } // SEULEMENT pour les Admins
+    required: function() { return this.role === 'Admin'; }
   },
   password: {
     type: String,
@@ -51,6 +52,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: "Admin"
+  },
+  doctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: function() { return this.role === 'Receptionist'; },
+    unique: function() { return this.role === 'Receptionist'; },
+    sparse: true,
   },
   docAvatar: {
     public_id: String,
