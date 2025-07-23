@@ -7,28 +7,24 @@ import {
   changePassword,
   forgotPassword, 
   resetPassword,
-  addNewReceptionist, // N'oubliez pas d'importer la nouvelle fonction
+  addNewReceptionist,
 } from "../controller/userController.js";
 
-
-import { isAdminAuthenticated } from "../middlewares/auth.js";
-import { isAuthenticated } from "../middlewares/auth.js";
-
+import { isAuthenticated, isAdminAuthenticated } from "../middlewares/auth.js";
+import { isAuthorized } from "../middlewares/auth.js"; // J'ai ajouté l'import de isAuthorized au cas où tu en aurais besoin
 
 const router = express.Router();
 
 router.post("/login", login);
-router.post("/admin/addnew", addNewAdmin); // <<< CORRIGÉ : AUCUN MIDDLEWARE ICI
-router.get("/admin/me", isAuthenticated, getUserDetails); // <<< CORRIGÉ : UTILISER isAuthenticated
-router.get("/admin/logout", isAuthenticated, logoutAdmin); // <<< CORRIGÉ : UTILISER isAuthenticated
-router.put("/change-password", isAuthenticated, changePassword); // <<< CORRIGÉ : UTILISER isAuthenticated
+router.post("/admin/addnew", addNewAdmin);
+router.get("/admin/me", isAuthenticated, getUserDetails);
+router.get("/admin/logout", isAuthenticated, logoutAdmin);
+router.put("/change-password", isAuthenticated, changePassword);
 
-// AJOUT DE LA NOUVELLE ROUTE POUR LA RÉCEPTIONNISTE
-router.post("/receptionist/addnew", isAuthenticated, addNewReceptionist); 
-
-// Routes de réinitialisation de mot de passe
 router.post("/forgot-password", forgotPassword);
 router.put("/reset-password/:token", resetPassword);
 
+// Route pour ajouter une réceptionniste (protégée)
+router.post("/receptionist/addnew", isAdminAuthenticated, addNewReceptionist);
 
 export default router;
